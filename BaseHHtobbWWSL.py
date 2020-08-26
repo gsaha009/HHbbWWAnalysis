@@ -578,6 +578,11 @@ One lepton and and one jet argument must be specified in addition to the require
             print ("No jet corrections applied")
 
         ###########################################################################
+        #                        HighLevel lambda object                          #
+        ###########################################################################
+        self.HLL = highlevelLambdasSL(self)
+
+        ###########################################################################
         #                           TTbar reweighting                             #
         ###########################################################################
         if "group" in sampleCfg and sampleCfg["group"] == 'ttbar': 
