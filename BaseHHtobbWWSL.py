@@ -710,11 +710,11 @@ One lepton and and one jet argument must be specified in addition to the require
 
                     # Def conept : https://github.com/CERN-PH-CMG/cmgtools-lite/blob/f8a34c64a4489d94ff9ac4c0d8b0b06dad46e521/TTHAnalysis/python/tools/conept.py#L74
         self.lambda_conept_muon = lambda lep : op.multiSwitch((op.AND(op.abs(lep.pdgId)!=11 , op.abs(lep.pdgId)!=13) , op.static_cast("Float_t",lep.pt)),
-                                                               # if (abs(lep.pdgId)!=11 and abs(lep.pdgId)!=13): return lep.pt : anything that is not muon or electron
+                                                              # if (abs(lep.pdgId)!=11 and abs(lep.pdgId)!=13): return lep.pt : anything that is not muon or electron
                                                               (op.AND(op.abs(lep.pdgId)==13 , lep.mediumId ,lep.mvaTTH > 0.85) , op.static_cast("Float_t",lep.pt)),
-                                                               # if muon, check that passes medium and above MVA
-                                                               op.static_cast("Float_t",0.9*lep.pt*(1.+lep.jetRelIso)))
-                                                               # else: return 0.90 * lep.pt / lep.jetPtRatiov2
+                                                              # if muon, check that passes medium and above MVA
+                                                              op.static_cast("Float_t",0.9*lep.pt*(1.+lep.jetRelIso)))
+                                                              # else: return 0.90 * lep.pt / lep.jetPtRatiov2
         self.muon_conept = op.map(t.Muon, self.lambda_conept_muon)
 
         # Btag interpolation #
