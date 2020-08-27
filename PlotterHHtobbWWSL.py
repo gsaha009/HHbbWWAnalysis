@@ -388,15 +388,15 @@ class PlotterNanoHHtobbWWSL(BaseNanoHHtobbWW,DataDrivenBackgroundHistogramsModul
 
                         # Simple reco method to find the jet paits coming from W
                         # https://gitlab.cern.ch/cms-hh-bbww/cms-hh-to-bbww/-/blob/master/Legacy/signal_extraction.md
-                        self.remainingJetPairs_mu1b3j = op.combine(self.remainingJets, N=2)
+
                         self.lambda_chooseWjj_mu1b3j  = lambda dijet: op.abs((dijet[0].p4+dijet[1].p4+MuColl[0].p4+self.corrMET.p4).M() - 
-                                                                             (bJetCorrP4(self.ak4BJets[0]) + bJetCorrP4(self.ak4LightJetsByBtagScore[0])).M()) 
-                        self.WjjPairs_mu1b3j = op.sort(self.remainingJetPairs_mu1b3j, self.lambda_chooseWjj_mu1b3j)
+                                                                             (self.HLL.bJetCorrP4(self.ak4BJets[0]) + self.HLL.bJetCorrP4(self.ak4LightJetsByBtagScore[0])).M()) 
+                        self.WjjPairs_mu1b3j = op.sort(self.remainingJetPairs(self.remainingJets), self.lambda_chooseWjj_mu1b3j)
                         
-                        self.remainingJetPairs_el1b3j = op.combine(self.remainingJets, N=2)
+
                         self.lambda_chooseWjj_el1b3j  = lambda dijet: op.abs((dijet[0].p4+dijet[1].p4+ElColl[0].p4+self.corrMET.p4).M() - 
-                                                                             (bJetCorrP4(self.ak4BJets[0]) + bJetCorrP4(self.ak4LightJetsByBtagScore[0])).M()) 
-                        self.WjjPairs_el1b3j = op.sort(self.remainingJetPairs_el1b3j, self.lambda_chooseWjj_el1b3j)
+                                                                             (self.HLL.bJetCorrP4(self.ak4BJets[0]) + self.HLL.bJetCorrP4(self.ak4LightJetsByBtagScore[0])).M()) 
+                        self.WjjPairs_el1b3j = op.sort(self.remainingJetPairs(self.remainingJets), self.lambda_chooseWjj_el1b3j)
 
                         
                         ChannelDictList.append({'channel':'El','sel':ElSelObjAk4JetsTightExclusiveResolved1b3j.sel,'lep':ElColl[0],'met':self.corrMET,
@@ -423,15 +423,14 @@ class PlotterNanoHHtobbWWSL(BaseNanoHHtobbWW,DataDrivenBackgroundHistogramsModul
 
                         # Simple reco method to find the jet paits coming from W
                         # https://gitlab.cern.ch/cms-hh-bbww/cms-hh-to-bbww/-/blob/master/Legacy/signal_extraction.md
-                        self.lightJetPairs_mu2b2j     = op.combine(self.ak4LightJetsByPt, N=2)
+
                         self.lambda_chooseWjj_mu2b2j  = lambda dijet: op.abs((dijet[0].p4+dijet[1].p4+MuColl[0].p4+self.corrMET.p4).M() - 
                                                                              (self.HLL.bJetCorrP4(self.ak4BJets[0]) + self.HLL.bJetCorrP4(self.ak4LightJetsByBtagScore[0])).M()) 
-                        self.WjjPairs_mu2b2j          = op.sort(self.lightJetPairs_mu2b2j, self.lambda_chooseWjj_mu2b2j)
+                        self.WjjPairs_mu2b2j          = op.sort(self.remainingJetPairs(self.ak4LightJetsByPt), self.lambda_chooseWjj_mu2b2j)
                         
-                        self.lightJetPairs_el2b2j     = op.combine(self.ak4LightJetsByPt, N=2)
                         self.lambda_chooseWjj_el2b2j  = lambda dijet: op.abs((dijet[0].p4+dijet[1].p4+ElColl[0].p4+self.corrMET.p4).M() - 
                                                                              (self.HLL.bJetCorrP4(self.ak4BJets[0]) + self.HLL.bJetCorrP4(self.ak4LightJetsByBtagScore[0])).M())
-                        self.WjjPairs_el2b2j          = op.sort(self.lightJetPairs_el2b2j, self.lambda_chooseWjj_el2b2j)
+                        self.WjjPairs_el2b2j          = op.sort(self.remainingJetPairs(self.ak4LightJetsByPt), self.lambda_chooseWjj_el2b2j)
                         
 
                         ChannelDictList.append({'channel':'El','sel':ElSelObjAk4JetsTightExclusiveResolved2b2j.sel,'lep':ElColl[0],'met':self.corrMET,
@@ -444,6 +443,7 @@ class PlotterNanoHHtobbWWSL(BaseNanoHHtobbWW,DataDrivenBackgroundHistogramsModul
                                                 'nJet':4,'nbJet':2,
                                                 'suffix':MuSelObjAk4JetsTightExclusiveResolved2b2j.selName,
                                                 'is_MC':self.is_MC})
+
 
                 # Lepton + jet Plots #
                 ResolvedBTaggedJetsN = {'objName':'Ak4BJets','objCont':self.ak4BJets,'Nmax':5,'xTitle':'N(Ak4 Bjets)'}
@@ -495,12 +495,10 @@ class PlotterNanoHHtobbWWSL(BaseNanoHHtobbWW,DataDrivenBackgroundHistogramsModul
                     MuSelObjAk8bJetsHbbBoostedWtoJJ = makeSemiBoostedHbbSelection(self,MuSelObjAk8bJets,nNonb=2,copy_sel=True,plot_yield=True)
                     if not self.args.OnlyYield and "SemiBoostedHbbWtoJJ" in jetplot_level:
 
-                        self.nonbJetPairs_muSB        = op.combine(self.ak4JetsCleanedFromAk8b, N=2)
                         self.lambda_chooseWjj_muSB    = lambda dijet: op.abs((dijet[0].p4+dijet[1].p4+MuColl[0].p4+self.corrMET.p4).M() - self.ak8BJets[0].p4.M()) 
-                        self.WjjPairs_muSB            = op.sort(self.nonbJetPairs_muSB, self.lambda_chooseWjj_muSB)
+                        self.WjjPairs_muSB            = op.sort(self.remainingJetPairs(self.ak4JetsCleanedFromAk8b), self.lambda_chooseWjj_muSB)
                         self.nonbJetPairs_elSB        = op.combine(self.ak4JetsCleanedFromAk8b, N=2)
-                        self.lambda_chooseWjj_elSB    = lambda dijet: op.abs((dijet[0].p4+dijet[1].p4+ElColl[0].p4+self.corrMET.p4).M() - self.ak8BJets[0].p4.M()) 
-                        self.WjjPairs_elSB            = op.sort(self.nonbJetPairs_elSB, self.lambda_chooseWjj_elSB)
+                        self.WjjPairs_elSB            = op.sort(self.remainingJetPairs(self.ak4JetsCleanedFromAk8b), self.lambda_chooseWjj_elSB)
                         
 
                         # cut flow report

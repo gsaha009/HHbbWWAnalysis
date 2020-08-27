@@ -38,7 +38,8 @@ class highlevelLambdas:
                                                op.min(op.deltaR(l2.p4,j1.p4),op.deltaR(l2.p4,j2.p4)))
         
         self.MinDR_lep3j = lambda lep,j1,j2,j3 : op.min(op.min(op.deltaR(lep.p4,j1.p4),op.deltaR(lep.p4,j2.p4)),op.deltaR(lep.p4,j3.p4))
-        
+        self.MinDR_lep4j = lambda lep,j1,j2,j3,j4 : op.min(op.min(op.min(op.deltaR(lep.p4,j1.p4),op.deltaR(lep.p4,j2.p4)),op.deltaR(lep.p4,j3.p4)),op.deltaR(lep.p4,j4.p4))
+
         # Higgs related variables #
         self.HT2 = lambda l1,l2,j1,j2,met : op.sqrt(op.pow(met.pt*op.cos(met.phi)+l1.p4.Px()+l2.p4.Px(),2)+op.pow(met.pt*op.sin(met.phi)+l1.p4.Py()+l2.p4.Py(),2)) + op.abs((j1.p4+j2.p4).Pt())
         self.HT2R = lambda l1,l2,j1,j2,met : self.HT2(met,l1,l2,j1,j2)/(met.pt+l1.p4.Pt()+l2.p4.Pt()+j1.p4.Pt()+j2.p4.Pt())
@@ -49,6 +50,8 @@ class highlevelLambdas:
         
         #min j1j2DR
         self.MinDiJetDRLoose = lambda j1,j2,j3: op.min(op.min(op.deltaR(j1.p4,j2.p4), op.deltaR(j2.p4,j3.p4)), op.deltaR(j1.p4,j3.p4))
+        self.MinDiJetDRTight = lambda j1,j2,j3,j4: op.min(op.min(op.min(self.MinDiJetDRLoose(j1,j2,j3), op.deltaR(j1.p4,j4.p4)), op.deltaR(j2.p4,j4.p4)),op.deltaR(j3.p4,j4.p4))
+
         
         # ------------------------------------ lambdas for BDT variables ------------------------------------ #
         self.mindr_lep1_jet = lambda lep, jets : op.deltaR(lep.p4, op.sort(jets, lambda j : op.deltaR(lep.p4, j.p4))[0].p4)

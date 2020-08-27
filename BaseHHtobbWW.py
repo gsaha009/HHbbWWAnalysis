@@ -1046,8 +1046,8 @@ One lepton and and one jet argument must be specified in addition to the require
 
         # Doesn't contain the leading bTag scored Light Jet
         self.remainingJets = op.select(self.ak4LightJetsByPt, lambda jet : jet.idx != self.ak4LightJetsByBtagScore[0].idx)
-        # Wjj selection for resolved2b2j
-
+        self.remainingJetPairs = lambda jets : op.combine(jets, N=2) 
+        
         #############################################################################
         #                                AK8 Jets                                   #
         #############################################################################
