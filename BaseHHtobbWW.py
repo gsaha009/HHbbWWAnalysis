@@ -241,7 +241,7 @@ One lepton and and one jet argument must be specified in addition to the require
         parser.add_argument("--WhadTagger", 
                             action      = "store",
                             type        = str,
-                            help        = "BDT | simple")
+                            help        = "Whad tagger :: Simple || BDT")
 
 
     def prepareTree(self, tree, sample=None, sampleCfg=None):
