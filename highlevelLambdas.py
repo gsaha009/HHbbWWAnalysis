@@ -58,14 +58,15 @@ class highlevelLambdas:
         self.mindr_lep1_jet = lambda lep, jets : op.deltaR(lep.p4, op.sort(jets, lambda j : op.deltaR(lep.p4, j.p4))[0].p4)
         
         # HT
-        self.HT = lambda jets : op.rng_sum(jets, lambda j : j.p4.Pt())
+        self.HTfull = lambda fleps, j1p4,j2p4,j3p4,j4p4 : j1p4.Pt()+j2p4.Pt()+j3p4.Pt()+j4p4.Pt()+op.rng_sum(fleps, lambda l : l.p4.Pt())
+        self.HTmiss = lambda fleps, j1p4,j2p4,j3p4 : j1p4.Pt()+j2p4.Pt()+j3p4.Pt()+op.rng_sum(fleps, lambda l : l.p4.Pt())
         
         # mT2
-        ET  = lambda lep : op.sqrt(op.pow(lep.p4.M(),2) + op.pow(lep.p4.Pt(),2))
-        self.mT2 = lambda jet, lep, met : (op.pow(jet.p4.M(),2) + op.pow(lep.p4.M(),2) + op.pow(met.p4.M(),2) + 
-                                      2*(ET(lep)*ET(jet) - (lep.p4.Px()*jet.p4.Px() + lep.p4.Py()*jet.p4.Py())) +
-                                      2*(ET(lep)*ET(met) - (lep.p4.Px()*met.p4.Px() + lep.p4.Py()*met.p4.Py())) +
-                                      2*(ET(jet)*ET(met) - (jet.p4.Px()*met.p4.Px() + jet.p4.Py()*met.p4.Py())))
+        ET  = lambda lepp4 : op.sqrt(op.pow(lepp4.M(),2) + op.pow(lepp4.Pt(),2))
+        self.mT2 = lambda jetp4, lepp4, metp4 : (op.pow(jetp4.M(),2) + op.pow(lepp4.M(),2) + op.pow(metp4.M(),2) + 
+                                                 2*(ET(lepp4)*ET(jetp4) - (lepp4.Px()*jetp4.Px() + lepp4.Py()*jetp4.Py())) +
+                                                 2*(ET(lepp4)*ET(metp4) - (lepp4.Px()*metp4.Px() + lepp4.Py()*metp4.Py())) +
+                                                 2*(ET(jetp4)*ET(metp4) - (jetp4.Px()*metp4.Px() + jetp4.Py()*metp4.Py())))
         
         # pZ component of met
         # https://github.com/HEP-KBFI/hh-bbww/blob/f4ab60f81a920268a3f2187b97a58ec449b26883/src/comp_metP4_B2G_18_008.cc
@@ -132,7 +133,6 @@ class highlevelLambdas:
         #boost = lambda ob1p4, ob2p4: op.construct("ROOT::Math::Boost", (-betaX(ob1p4, ob2p4), -betaY(ob1p4, ob2p4), -betaZ(ob1p4, ob2p4)))
         #boostP4 = lambda ob1p4,ob2p4 : boost(ob1p4,ob2p4)(ob1p4)
         #self.comp_cosThetaS = lambda ob1p4,ob2p4 : op.abs(boostP4(ob1p4,ob2p4).Pz()/op.sqrt(op.pow(boostP4(ob1p4,ob2p4).Px(),2) + op.pow(boostP4(ob1p4,ob2p4).Py(),2) + op.pow(boostP4(ob1p4,ob2p4).Pz(),2)))
-
 
 
         # MET_LD

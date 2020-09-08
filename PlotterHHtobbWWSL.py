@@ -59,6 +59,9 @@ class PlotterNanoHHtobbWWSL(BaseNanoHHtobbWW,DataDrivenBackgroundHistogramsModul
         path_missRecoSM_even_simple_model   = os.path.join(os.path.abspath(os.path.dirname(__file__)),'MachineLearning','hh_bb1l_SM_Wj1_even.xml')
         path_fullRecoSM_odd_simple_model    = os.path.join(os.path.abspath(os.path.dirname(__file__)),'MachineLearning','hh_bb1l_SM_Wjj_simple_full_reco_only_noIndPt_odd.xml')
         path_missRecoSM_odd_simple_model    = os.path.join(os.path.abspath(os.path.dirname(__file__)),'MachineLearning','hh_bb1l_SM_Wj1_odd.xml')
+        path_fullRecoSM_even_BDT_model   = os.path.join(os.path.abspath(os.path.dirname(__file__)),'MachineLearning','hh_bb1l_SM_Wjj_BDT_full_reco_only_even.xml')
+        path_fullRecoSM_odd_BDT_model    = os.path.join(os.path.abspath(os.path.dirname(__file__)),'MachineLearning','hh_bb1l_SM_Wjj_BDT_full_reco_only_odd.xml')
+
         # 900_Radion
         path_fullReco900R_even_simple_model = os.path.join(os.path.abspath(os.path.dirname(__file__)),'MachineLearning','hh_bb1l_X900GeV_Wjj_simple_full_reco_even.xml')
         path_missReco900R_even_simple_model = os.path.join(os.path.abspath(os.path.dirname(__file__)),'MachineLearning','hh_bb1l_X900GeV_Wj1_even.xml')
@@ -77,6 +80,9 @@ class PlotterNanoHHtobbWWSL(BaseNanoHHtobbWW,DataDrivenBackgroundHistogramsModul
             BDT_missReco900R_simple_even = op.mvaEvaluator(path_missReco900R_even_simple_model, mvaType='TMVA')
             BDT_fullReco900R_simple_odd  = op.mvaEvaluator(path_fullReco900R_odd_simple_model, mvaType='TMVA')
             BDT_missReco900R_simple_odd  = op.mvaEvaluator(path_missReco900R_odd_simple_model, mvaType='TMVA')
+
+            BDT_fullRecoSM_BDT_even   = op.mvaEvaluator(path_fullRecoSM_even_BDT_model, mvaType='TMVA')
+            BDT_fullRecoSM_BDT_odd    = op.mvaEvaluator(path_fullRecoSM_odd_BDT_model, mvaType='TMVA')
         except:
             raise RuntimeError('Could not load model %s'%path_model)
         
@@ -284,6 +290,15 @@ class PlotterNanoHHtobbWWSL(BaseNanoHHtobbWW,DataDrivenBackgroundHistogramsModul
                     plots.extend(makeMETPlots(**{k:channelDict[k] for k in commonItems}, met=self.corrMET))
 
                          
+
+            # Used by TightResolved and Semi Boosted categories
+            if self.args.WhadTagger == 'BDT':
+                self.lambda_evaluateWhadBDT_el = lambda wjjPair : applyBDTforWhadTagger(self, ElColl[0], self.ak4Jets, self.ak4BJets, wjjPair,
+                                                                                        BDT_XGB_Wjj_even, BDT_XGB_Wjj_odd, event=t.event)
+                self.lambda_evaluateWhadBDT_mu = lambda wjjPair : applyBDTforWhadTagger(self, MuColl[0], self.ak4Jets, self.ak4BJets, wjjPair,
+                                                                                        BDT_XGB_Wjj_even, BDT_XGB_Wjj_odd, event=t.event)
+
+
             #-----------------------------|||||||||||||||| Resolved selection ||||||||||||||-----------------------------------#
             if any("Resolved" in item for item in jetsel_level):
                 ResolvedKeys = ['channel','sel','met','lep','j1','j2','j3','j4','suffix','nJet','nbJet']
@@ -391,28 +406,25 @@ class PlotterNanoHHtobbWWSL(BaseNanoHHtobbWW,DataDrivenBackgroundHistogramsModul
                         cutFlowPlots.append(CutFlowReport(MuSelObjAk4JetsTightExclusiveResolved1b3j.selName,MuSelObjAk4JetsTightExclusiveResolved1b3j.sel))
 
                         if self.args.WhadTagger == 'BDT':
-                            self.lambda_evaluateWhadBDT_el = lambda wjjPair : applyBDTforWhadTagger(self, ElColl[0], self.ak4Jets, self.ak4BJets, wjjPair,
-                                                                                             BDT_XGB_Wjj_even, BDT_XGB_Wjj_odd, event=t.event)
-                            self.lambda_evaluateWhadBDT_mu = lambda wjjPair : applyBDTforWhadTagger(self, MuColl[0], self.ak4Jets, self.ak4BJets, wjjPair,
-                                                                                             BDT_XGB_Wjj_even, BDT_XGB_Wjj_odd, event=t.event)
+                            #lambda_evaluateWhadBDT_el = lambda wjjPair : applyBDTforWhadTagger(self, ElColl[0], self.ak4Jets, self.ak4BJets, wjjPair,
+                            #                                                                 BDT_XGB_Wjj_even, BDT_XGB_Wjj_odd, event=t.event)
+                            #lambda_evaluateWhadBDT_mu = lambda wjjPair : applyBDTforWhadTagger(self, MuColl[0], self.ak4Jets, self.ak4BJets, wjjPair,
+                            #                                                                 BDT_XGB_Wjj_even, BDT_XGB_Wjj_odd, event=t.event)
 
-                            #self.WjjPairs_el1b3j_BDTscores = op.map(self.remainingJetPairs, self.lambda_evaluateWhadBDT_el[0])
-                            #self.WjjPairs_mu1b3j_BDTscores = op.map(self.remainingJetPairs, self.lambda_evaluateWhadBDT_mu[0])
-
-                            self.remainingJetPairsByBDTScore_el = op.sort(self.remainingJetPairs, lambda jetPair : -self.lambda_evaluateWhadBDT_el)
-                            self.remainingJetPairsByBDTScore_mu = op.sort(self.remainingJetPairs, lambda jetPair : -self.lambda_evaluateWhadBDT_mu)
+                            self.remainingJetPairsByBDTScore_el_1b3j = op.sort(self.remainingJetPairs(self.remainingJets), lambda jetPair : -self.lambda_evaluateWhadBDT_el(jetPair))
+                            self.remainingJetPairsByBDTScore_mu_1b3j = op.sort(self.remainingJetPairs(self.remainingJets), lambda jetPair : -self.lambda_evaluateWhadBDT_mu(jetPair))
 
                             ChannelDictList.append({'channel':'El','sel':ElSelObjAk4JetsTightExclusiveResolved1b3j.sel,'lep':ElColl[0],'met':self.corrMET,
                                                     'j1':self.ak4BJets[0],'j2':self.ak4LightJetsByBtagScore[0],
-                                                    'j3':self.remainingJetPairsByBDTScore_el[0][0],'j4':self.remainingJetPairsByBDTScore_el[0][1],
+                                                    'j3':self.remainingJetPairsByBDTScore_el_1b3j[0][0],'j4':self.remainingJetPairsByBDTScore_el_1b3j[0][1],
                                                     'nJet':4,'nbJet':1,
-                                                    'suffix':ElSelObjAk4JetsTightExclusiveResolved1b3j.selName,
+                                                    'suffix':ElSelObjAk4JetsTightExclusiveResolved1b3j.selName+'_Whad_BDT',
                                                     'is_MC':self.is_MC})
                             ChannelDictList.append({'channel':'Mu','sel':MuSelObjAk4JetsTightExclusiveResolved1b3j.sel,'lep':MuColl[0],'met':self.corrMET,
                                                     'j1':self.ak4BJets[0],'j2':self.ak4LightJetsByBtagScore[0],
-                                                    'j3':self.remainingJetPairsByBDTScore_mu[0][0],'j4':self.remainingJetPairsByBDTScore_mu[0][1],
+                                                    'j3':self.remainingJetPairsByBDTScore_mu_1b3j[0][0],'j4':self.remainingJetPairsByBDTScore_mu_1b3j[0][1],
                                                     'nJet':4,'nbJet':1,
-                                                    'suffix':MuSelObjAk4JetsTightExclusiveResolved1b3j.selName,
+                                                    'suffix':MuSelObjAk4JetsTightExclusiveResolved1b3j.selName+'_Whad_BDT',
                                                     'is_MC':self.is_MC})
 
                         elif self.args.WhadTagger == 'Simple': 
@@ -429,15 +441,17 @@ class PlotterNanoHHtobbWWSL(BaseNanoHHtobbWW,DataDrivenBackgroundHistogramsModul
                             ChannelDictList.append({'channel':'El','sel':ElSelObjAk4JetsTightExclusiveResolved1b3j.sel,'lep':ElColl[0],'met':self.corrMET,
                                                     'j1':self.ak4BJets[0],'j2':self.ak4LightJetsByBtagScore[0],'j3':self.WjjPairs_el1b3j[0][0],'j4':self.WjjPairs_el1b3j[0][1],
                                                     'nJet':4,'nbJet':1,
-                                                    'suffix':ElSelObjAk4JetsTightExclusiveResolved1b3j.selName,
+                                                    'suffix':ElSelObjAk4JetsTightExclusiveResolved1b3j.selName+'_Whad_Simple',
                                                     'is_MC':self.is_MC})
                             ChannelDictList.append({'channel':'Mu','sel':MuSelObjAk4JetsTightExclusiveResolved1b3j.sel,'lep':MuColl[0],'met':self.corrMET,
                                                     'j1':self.ak4BJets[0],'j2':self.ak4LightJetsByBtagScore[0],'j3':self.WjjPairs_mu1b3j[0][0],'j4':self.WjjPairs_mu1b3j[0][1],
                                                     'nJet':4,'nbJet':1,
-                                                    'suffix':MuSelObjAk4JetsTightExclusiveResolved1b3j.selName,
+                                                    'suffix':MuSelObjAk4JetsTightExclusiveResolved1b3j.selName+'_Whad_Simple',
                                                     'is_MC':self.is_MC})
                         else :
-                            raise RuntimeError("Type of WhadTagger not mentioned for TightResolved1b3j category")
+                            raise RuntimeError("Type of WhadTagger not mentioned for TightResolved1b3j category : No Plots")
+                            
+
                 #----- Resolved selection : 2 Btags -----#
                 if "TightResolved2b2j" in jetsel_level:
                     print ("......... Processing Resolved jet (2 btag i.e. bTaggedJets >= 2 & nLightJets >= 2) selection")    
@@ -449,29 +463,55 @@ class PlotterNanoHHtobbWWSL(BaseNanoHHtobbWW,DataDrivenBackgroundHistogramsModul
                         cutFlowPlots.append(CutFlowReport(ElSelObjAk4JetsTightExclusiveResolved2b2j.selName,ElSelObjAk4JetsTightExclusiveResolved2b2j.sel))
                         cutFlowPlots.append(CutFlowReport(MuSelObjAk4JetsTightExclusiveResolved2b2j.selName,MuSelObjAk4JetsTightExclusiveResolved2b2j.sel))
 
-                        # Simple reco method to find the jet paits coming from W
-                        # https://gitlab.cern.ch/cms-hh-bbww/cms-hh-to-bbww/-/blob/master/Legacy/signal_extraction.md
+                        if self.args.WhadTagger == 'BDT':
+                            #lambda_evaluateWhadBDT_el = lambda wjjPair : applyBDTforWhadTagger(self, ElColl[0], self.ak4Jets, self.ak4BJets, wjjPair,
+                            #                                                                   BDT_XGB_Wjj_even, BDT_XGB_Wjj_odd, event=t.event)
+                            #lambda_evaluateWhadBDT_mu = lambda wjjPair : applyBDTforWhadTagger(self, MuColl[0], self.ak4Jets, self.ak4BJets, wjjPair,
+                            #                                                                   BDT_XGB_Wjj_even, BDT_XGB_Wjj_odd, event=t.event)
 
-                        self.lambda_chooseWjj_mu2b2j  = lambda dijet: op.abs((dijet[0].p4+dijet[1].p4+MuColl[0].p4+self.corrMET.p4).M() - 
-                                                                             (self.HLL.bJetCorrP4(self.ak4BJets[0]) + self.HLL.bJetCorrP4(self.ak4LightJetsByBtagScore[0])).M()) 
-                        self.WjjPairs_mu2b2j          = op.sort(self.remainingJetPairs(self.ak4LightJetsByPt), self.lambda_chooseWjj_mu2b2j)
-                        
-                        self.lambda_chooseWjj_el2b2j  = lambda dijet: op.abs((dijet[0].p4+dijet[1].p4+ElColl[0].p4+self.corrMET.p4).M() - 
-                                                                             (self.HLL.bJetCorrP4(self.ak4BJets[0]) + self.HLL.bJetCorrP4(self.ak4LightJetsByBtagScore[0])).M())
-                        self.WjjPairs_el2b2j          = op.sort(self.remainingJetPairs(self.ak4LightJetsByPt), self.lambda_chooseWjj_el2b2j)
-                        
+                            self.remainingJetPairsByBDTScore_el_2b2j = op.sort(self.remainingJetPairs(self.ak4LightJetsByPt), lambda jetPair : -self.lambda_evaluateWhadBDT_el(jetPair))
+                            self.remainingJetPairsByBDTScore_mu_2b2j = op.sort(self.remainingJetPairs(self.ak4LightJetsByPt), lambda jetPair : -self.lambda_evaluateWhadBDT_mu(jetPair))
 
-                        ChannelDictList.append({'channel':'El','sel':ElSelObjAk4JetsTightExclusiveResolved2b2j.sel,'lep':ElColl[0],'met':self.corrMET,
-                                                'j1':self.ak4BJets[0],'j2':self.ak4BJets[1],'j3':self.WjjPairs_el2b2j[0][0],'j4':self.WjjPairs_el2b2j[0][1],
-                                                'nJet':4,'nbJet':2,
-                                                'suffix':ElSelObjAk4JetsTightExclusiveResolved2b2j.selName,
-                                                'is_MC':self.is_MC})
-                        ChannelDictList.append({'channel':'Mu','sel':MuSelObjAk4JetsTightExclusiveResolved2b2j.sel,'lep':MuColl[0],'met':self.corrMET,
-                                                'j1':self.ak4BJets[0],'j2':self.ak4BJets[1],'j3':self.WjjPairs_mu2b2j[0][0],'j4':self.WjjPairs_mu2b2j[0][1],
-                                                'nJet':4,'nbJet':2,
-                                                'suffix':MuSelObjAk4JetsTightExclusiveResolved2b2j.selName,
-                                                'is_MC':self.is_MC})
+                            ChannelDictList.append({'channel':'El','sel':ElSelObjAk4JetsTightExclusiveResolved2b2j.sel,'lep':ElColl[0],'met':self.corrMET,
+                                                    'j1':self.ak4BJets[0],'j2':self.ak4BJets[1],
+                                                    'j3':self.remainingJetPairsByBDTScore_el_2b2j[0][0],'j4':self.remainingJetPairsByBDTScore_el_2b2j[0][1],
+                                                    'nJet':4,'nbJet':2,
+                                                    'suffix':ElSelObjAk4JetsTightExclusiveResolved2b2j.selName+'_Whad_BDT',
+                                                    'is_MC':self.is_MC})
+                            ChannelDictList.append({'channel':'Mu','sel':MuSelObjAk4JetsTightExclusiveResolved2b2j.sel,'lep':MuColl[0],'met':self.corrMET,
+                                                    'j1':self.ak4BJets[0],'j2':self.ak4BJets[1],
+                                                    'j3':self.remainingJetPairsByBDTScore_mu_2b2j[0][0],'j4':self.remainingJetPairsByBDTScore_mu_2b2j[0][1],
+                                                    'nJet':4,'nbJet':2,
+                                                    'suffix':MuSelObjAk4JetsTightExclusiveResolved2b2j.selName+'_Whad_BDT',
+                                                    'is_MC':self.is_MC})
 
+
+                        elif self.args.WhadTagger == 'Simple':
+                            # Simple reco method to find the jet paits coming from W
+                            # https://gitlab.cern.ch/cms-hh-bbww/cms-hh-to-bbww/-/blob/master/Legacy/signal_extraction.md
+                            
+                            self.lambda_chooseWjj_mu2b2j  = lambda dijet: op.abs((dijet[0].p4+dijet[1].p4+MuColl[0].p4+self.corrMET.p4).M() - 
+                                                                                 (self.HLL.bJetCorrP4(self.ak4BJets[0]) + self.HLL.bJetCorrP4(self.ak4LightJetsByBtagScore[0])).M()) 
+                            self.WjjPairs_mu2b2j          = op.sort(self.remainingJetPairs(self.ak4LightJetsByPt), self.lambda_chooseWjj_mu2b2j)
+                            
+                            self.lambda_chooseWjj_el2b2j  = lambda dijet: op.abs((dijet[0].p4+dijet[1].p4+ElColl[0].p4+self.corrMET.p4).M() - 
+                                                                                 (self.HLL.bJetCorrP4(self.ak4BJets[0]) + self.HLL.bJetCorrP4(self.ak4LightJetsByBtagScore[0])).M())
+                            self.WjjPairs_el2b2j          = op.sort(self.remainingJetPairs(self.ak4LightJetsByPt), self.lambda_chooseWjj_el2b2j)
+                            
+                            
+                            ChannelDictList.append({'channel':'El','sel':ElSelObjAk4JetsTightExclusiveResolved2b2j.sel,'lep':ElColl[0],'met':self.corrMET,
+                                                    'j1':self.ak4BJets[0],'j2':self.ak4BJets[1],'j3':self.WjjPairs_el2b2j[0][0],'j4':self.WjjPairs_el2b2j[0][1],
+                                                    'nJet':4,'nbJet':2,
+                                                    'suffix':ElSelObjAk4JetsTightExclusiveResolved2b2j.selName+'_Whad_Simple',
+                                                    'is_MC':self.is_MC})
+                            ChannelDictList.append({'channel':'Mu','sel':MuSelObjAk4JetsTightExclusiveResolved2b2j.sel,'lep':MuColl[0],'met':self.corrMET,
+                                                    'j1':self.ak4BJets[0],'j2':self.ak4BJets[1],'j3':self.WjjPairs_mu2b2j[0][0],'j4':self.WjjPairs_mu2b2j[0][1],
+                                                    'nJet':4,'nbJet':2,
+                                                    'suffix':MuSelObjAk4JetsTightExclusiveResolved2b2j.selName+'_Whad_Simple',
+                                                    'is_MC':self.is_MC})
+
+                        else :
+                            raise RuntimeError("Type of WhadTagger not mentioned for TightResolved2b2j category : No Plots")
 
                 # Lepton + jet Plots #
                 ResolvedBTaggedJetsN = {'objName':'Ak4BJets','objCont':self.ak4BJets,'Nmax':5,'xTitle':'N(Ak4 Bjets)'}
@@ -496,7 +536,7 @@ class PlotterNanoHHtobbWWSL(BaseNanoHHtobbWW,DataDrivenBackgroundHistogramsModul
                 FatJetKeys     = ['channel','sel','j1','j2','j3','has1fat1slim','has1fat2slim','suffix']
                 FatJetsN       = {'objName':'Ak8Jets','objCont':self.ak8Jets,'Nmax':5,'xTitle':'N(Ak8 jets)'}
                 FatBJetsN      = {'objName':'Ak8BJets','objCont':self.ak8BJets,'Nmax':5,'xTitle':'N(Ak8 b-jets)'}
-                BoostedKeys    = ['channel','sel','met','lep','j1','j2','suffix','bothAreFat']
+                BoostedKeys    = ['channel','sel','met','lep','j1','j2','j3','suffix','bothAreFat','has1fat2slim']
                 if "SemiBoostedHbbWtoJ" in jetsel_level:
                     print ("............ Processing Semi-Boosted category (Htobb:Ak8 + WtoJ)")
                     ElSelObjAk8bJetsHbbBoostedWtoJ = makeSemiBoostedHbbSelection(self,ElSelObjAk8bJets,nNonb=1,copy_sel=True,plot_yield=True)
@@ -523,27 +563,55 @@ class PlotterNanoHHtobbWWSL(BaseNanoHHtobbWW,DataDrivenBackgroundHistogramsModul
                     MuSelObjAk8bJetsHbbBoostedWtoJJ = makeSemiBoostedHbbSelection(self,MuSelObjAk8bJets,nNonb=2,copy_sel=True,plot_yield=True)
                     if not self.args.OnlyYield and "SemiBoostedHbbWtoJJ" in jetplot_level:
 
-                        self.lambda_chooseWjj_muSB    = lambda dijet: op.abs((dijet[0].p4+dijet[1].p4+MuColl[0].p4+self.corrMET.p4).M() - self.ak8BJets[0].p4.M()) 
-                        self.WjjPairs_muSB            = op.sort(self.remainingJetPairs(self.ak4JetsCleanedFromAk8b), self.lambda_chooseWjj_muSB)
-                        self.nonbJetPairs_elSB        = op.combine(self.ak4JetsCleanedFromAk8b, N=2)
-                        self.WjjPairs_elSB            = op.sort(self.remainingJetPairs(self.ak4JetsCleanedFromAk8b), self.lambda_chooseWjj_elSB)
-                        
+                        if self.args.WhadTagger == 'BDT':
+                            #lambda_evaluateWhadBDT_el = lambda wjjPair : applyBDTforWhadTagger(self, ElColl[0], self.ak4Jets, self.ak4BJets, wjjPair,
+                            #                                                                   BDT_XGB_Wjj_even, BDT_XGB_Wjj_odd, event=t.event)
+                            #lambda_evaluateWhadBDT_mu = lambda wjjPair : applyBDTforWhadTagger(self, MuColl[0], self.ak4Jets, self.ak4BJets, wjjPair,
+                            #                                                                   BDT_XGB_Wjj_even, BDT_XGB_Wjj_odd, event=t.event)
 
-                        # cut flow report
-                        cutFlowPlots.append(CutFlowReport(ElSelObjAk8bJetsHbbBoostedWtoJJ.selName,ElSelObjAk8bJetsHbbBoostedWtoJJ.sel))
-                        cutFlowPlots.append(CutFlowReport(MuSelObjAk8bJetsHbbBoostedWtoJJ.selName,MuSelObjAk8bJetsHbbBoostedWtoJJ.sel))
+                            self.remainingJetPairsByBDTScore_el_Hbb = op.sort(self.remainingJetPairs(self.ak4JetsCleanedFromAk8b), lambda jetPair : -self.lambda_evaluateWhadBDT_el(jetPair))
+                            self.remainingJetPairsByBDTScore_mu_Hbb = op.sort(self.remainingJetPairs(self.ak4JetsCleanedFromAk8b), lambda jetPair : -self.lambda_evaluateWhadBDT_mu(jetPair))
+
+                            
+                            ChannelDictList.append({'channel':'El','sel':ElSelObjAk8bJetsHbbBoostedWtoJJ.sel,'lep':ElColl[0],'met':self.corrMET,
+                                                    'j1':self.ak8BJets[0],'j2':self.remainingJetPairsByBDTScore_el_Hbb[0][0],'j3':self.remainingJetPairsByBDTScore_el_Hbb[0][1],
+                                                    'has1fat1slim':False,'has1fat2slim':True,'bothAreFat':False,
+                                                    'suffix':ElSelObjAk8bJetsHbbBoostedWtoJJ.selName+'_Whad_BDT',
+                                                    'is_MC':self.is_MC})
+                            ChannelDictList.append({'channel':'Mu','sel':MuSelObjAk8bJetsHbbBoostedWtoJJ.sel,'lep':MuColl[0],'met':self.corrMET,
+                                                    'j1':self.ak8BJets[0],'j2':self.remainingJetPairsByBDTScore_mu_Hbb[0][0],'j3':self.remainingJetPairsByBDTScore_mu_Hbb[0][1],
+                                                    'has1fat1slim':False,'has1fat2slim':True,'bothAreFat':False,
+                                                    'suffix':MuSelObjAk8bJetsHbbBoostedWtoJJ.selName+'_Whad_BDT',
+                                                    'is_MC':self.is_MC})
+
+                        elif self.args.WhadTagger == 'Simple':
+
+                            self.lambda_chooseWjj_muSB    = lambda dijet: op.abs((dijet[0].p4+dijet[1].p4+MuColl[0].p4+self.corrMET.p4).M() - self.ak8BJets[0].p4.M()) 
+                            self.WjjPairs_muSB            = op.sort(self.remainingJetPairs(self.ak4JetsCleanedFromAk8b), self.lambda_chooseWjj_muSB)
+                            self.lambda_chooseWjj_elSB    = lambda dijet: op.abs((dijet[0].p4+dijet[1].p4+ElColl[0].p4+self.corrMET.p4).M() - self.ak8BJets[0].p4.M()) 
+                            #self.nonbJetPairs_elSB        = op.combine(self.ak4JetsCleanedFromAk8b, N=2)
+                            self.WjjPairs_elSB            = op.sort(self.remainingJetPairs(self.ak4JetsCleanedFromAk8b), self.lambda_chooseWjj_elSB)
+                            
+
+                            # cut flow report
+                            cutFlowPlots.append(CutFlowReport(ElSelObjAk8bJetsHbbBoostedWtoJJ.selName,ElSelObjAk8bJetsHbbBoostedWtoJJ.sel))
+                            cutFlowPlots.append(CutFlowReport(MuSelObjAk8bJetsHbbBoostedWtoJJ.selName,MuSelObjAk8bJetsHbbBoostedWtoJJ.sel))
+                            
+                            
+                            ChannelDictList.append({'channel':'El','sel':ElSelObjAk8bJetsHbbBoostedWtoJJ.sel,'lep':ElColl[0],'met':self.corrMET,
+                                                    'j1':self.ak8BJets[0],'j2':self.WjjPairs_elSB[0][0],'j3':self.WjjPairs_elSB[0][1],
+                                                    'has1fat1slim':False,'has1fat2slim':True,'bothAreFat':False,
+                                                    'suffix':ElSelObjAk8bJetsHbbBoostedWtoJJ.selName+'_Whad_Simple',
+                                                    'is_MC':self.is_MC})
+                            ChannelDictList.append({'channel':'Mu','sel':MuSelObjAk8bJetsHbbBoostedWtoJJ.sel,'lep':MuColl[0],'met':self.corrMET,
+                                                    'j1':self.ak8BJets[0],'j2':self.WjjPairs_muSB[0][0],'j3':self.WjjPairs_muSB[0][1],
+                                                    'has1fat1slim':False,'has1fat2slim':True,'bothAreFat':False,
+                                                    'suffix':MuSelObjAk8bJetsHbbBoostedWtoJJ.selName+'_Whad_Simple',
+                                                    'is_MC':self.is_MC})
+                        else :
+                            raise RuntimeError("Type of WhadTagger not mentioned for SemiBoostedHbb category : No Plots")
 
 
-                        ChannelDictList.append({'channel':'El','sel':ElSelObjAk8bJetsHbbBoostedWtoJJ.sel,'lep':ElColl[0],'met':self.corrMET,
-                                                'j1':self.ak8BJets[0],'j2':self.WjjPairs_elSB[0][0],'j3':self.WjjPairs_elSB[0][1],
-                                                'has1fat1slim':False,'has1fat2slim':True,'bothAreFat':False,
-                                                'suffix':ElSelObjAk8bJetsHbbBoostedWtoJJ.selName,
-                                                'is_MC':self.is_MC})
-                        ChannelDictList.append({'channel':'Mu','sel':MuSelObjAk8bJetsHbbBoostedWtoJJ.sel,'lep':MuColl[0],'met':self.corrMET,
-                                                'j1':self.ak8BJets[0],'j2':self.WjjPairs_muSB[0][0],'j3':self.WjjPairs_muSB[0][1],
-                                                'has1fat1slim':False,'has1fat2slim':True,'bothAreFat':False,
-                                                'suffix':MuSelObjAk8bJetsHbbBoostedWtoJJ.selName,
-                                                'is_MC':self.is_MC})
                 for channelDict in ChannelDictList:
                     # Dilepton #
                     plots.extend(makeSinleptonPlots(**{k:channelDict[k] for k in LeptonKeys}))
@@ -592,71 +660,347 @@ class PlotterNanoHHtobbWWSL(BaseNanoHHtobbWW,DataDrivenBackgroundHistogramsModul
 
             
             #----- Machine Learning plots -----#
-            channelDictListFull = []
-            channelDictListMiss = []
+            channelDictListFullR = []
+            channelDictListMissR = []
+            channelDictListFullB = []
+            channelDictListMissB = []
             if not self.args.OnlyYield:
+                # --------------------------------------------------------- MISS RECO --------------------------------------------------------------- #
+                if "LooseResolved1b2j" in jetplot_level:
+                    if self.args.Classifier == 'BDT-SM':
+                        channelDictListMissR.append({'channel':'El','fakeLepColl':self.electronsFakeSel,'lep':ElColl[0],'met':self.corrMET,
+                                                    'jets':self.ak4Jets,'bJets':self.ak4BJets,'lJets':self.ak4LightJetsByPt,
+                                                    'j1':self.ak4BJets[0],'j2':self.ak4LightJetsByBtagScore[0],'j3':self.remainingJets[0],'j4':None,
+                                                    'sel':ElSelObjAk4JetsLooseExclusiveResolved1b2j.sel,
+                                                    'suffix':ElSelObjAk4JetsLooseExclusiveResolved1b2j.selName+'_SMBDT',
+                                                    'model_even':BDT_missRecoSM_simple_even, 'model_odd':BDT_missRecoSM_simple_odd, 'nBins':25})
+
+                        channelDictListMissR.append({'channel':'Mu','fakeLepColl':self.muonsFakeSel,'lep':MuColl[0],'met':self.corrMET,
+                                                    'jets':self.ak4Jets,'bJets':self.ak4BJets,'lJets':self.ak4LightJetsByPt,
+                                                    'j1':self.ak4BJets[0],'j2':self.ak4LightJetsByBtagScore[0],'j3':self.remainingJets[0],'j4':None,
+                                                    'sel':MuSelObjAk4JetsLooseExclusiveResolved1b2j.sel,
+                                                    'suffix':MuSelObjAk4JetsLooseExclusiveResolved1b2j.selName+'_SMBDT',
+                                                    'model_even':BDT_missRecoSM_simple_even, 'model_odd':BDT_missRecoSM_simple_odd, 'nBins':25})
+
+                    # will fix later
+                    if self.args.Classifier == 'BDT-Rad900':
+                        channelDictListMissR.append({'channel':'El','fakeLepColl':self.electronsFakeSel,'lep':ElColl[0],'met':self.corrMET,
+                                                    'jets':self.ak4Jets,'bJets':self.ak4BJets,'lJets':self.ak4LightJetsByPt,
+                                                    'j1':self.ak4BJets[0],'j2':self.ak4BJets[1],'j3':self.ak4LightJetsByPt[0],'j4':None,
+                                                    'sel':ElSelObjAk4JetsLooseExclusiveResolved2b1j.sel,
+                                                    'suffix':ElSelObjAk4JetsLooseExclusiveResolved2b1j.selName+'900RBDT',
+                                                    'model_even':BDT_missReco900R_simple_even, 'model_odd':BDT_missReco900R_simple_odd, 'nBins':2})
+
+                        channelDictListMissR.append({'channel':'Mu','fakeLepColl':self.muonsFakeSel,'lep':MuColl[0],'met':self.corrMET,
+                                                    'jets':self.ak4Jets,'bJets':self.ak4BJets,'lJets':self.ak4LightJetsByPt,
+                                                    'j1':self.ak4BJets[0],'j2':self.ak4BJets[1],'j3':self.ak4LightJetsByPt[0],'j4':None,
+                                                    'sel':MuSelObjAk4JetsLooseExclusiveResolved2b1j.sel,
+                                                    'suffix':MuSelObjAk4JetsLooseExclusiveResolved2b1j.selName+'_900RBDT',
+                                                    'model_even':BDT_missReco900R_simple_even, 'model_odd':BDT_missReco900R_simple_odd, 'nBins':2})
+
+
                 if "LooseResolved2b1j" in jetplot_level:
                     if self.args.Classifier == 'BDT-SM':
-                        channelDictListMiss.append({'channel':'El','fakeLepColl':self.electronsFakeSel,'lep':ElColl[0],'met':self.corrMET,
+                        channelDictListMissR.append({'channel':'El','fakeLepColl':self.electronsFakeSel,'lep':ElColl[0],'met':self.corrMET,
                                                     'jets':self.ak4Jets,'bJets':self.ak4BJets,'lJets':self.ak4LightJetsByPt,
                                                     'j1':self.ak4BJets[0],'j2':self.ak4BJets[1],'j3':self.ak4LightJetsByPt[0],'j4':None,
                                                     'sel':ElSelObjAk4JetsLooseExclusiveResolved2b1j.sel,
-                                                    'suffix':ElSelObjAk4JetsLooseExclusiveResolved2b1j.selName+'_simple_SMBDT',
-                                                    'model_even':BDT_missRecoSM_simple_even, 'model_odd':BDT_missRecoSM_simple_odd})
-                        channelDictListMiss.append({'channel':'Mu','fakeLepColl':self.muonsFakeSel,'lep':MuColl[0],'met':self.corrMET,
+                                                    'suffix':ElSelObjAk4JetsLooseExclusiveResolved2b1j.selName+'_SMBDT',
+                                                    'model_even':BDT_missRecoSM_simple_even, 'model_odd':BDT_missRecoSM_simple_odd, 'nBins':25})
+
+                        channelDictListMissR.append({'channel':'Mu','fakeLepColl':self.muonsFakeSel,'lep':MuColl[0],'met':self.corrMET,
                                                     'jets':self.ak4Jets,'bJets':self.ak4BJets,'lJets':self.ak4LightJetsByPt,
                                                     'j1':self.ak4BJets[0],'j2':self.ak4BJets[1],'j3':self.ak4LightJetsByPt[0],'j4':None,
                                                     'sel':MuSelObjAk4JetsLooseExclusiveResolved2b1j.sel,
-                                                    'suffix':MuSelObjAk4JetsLooseExclusiveResolved2b1j.selName+'_simple_SMBDT',
-                                                    'model_even':BDT_missRecoSM_simple_even, 'model_odd':BDT_missRecoSM_simple_odd})
+                                                    'suffix':MuSelObjAk4JetsLooseExclusiveResolved2b1j.selName+'_SMBDT',
+                                                    'model_even':BDT_missRecoSM_simple_even, 'model_odd':BDT_missRecoSM_simple_odd, 'nBins':25})
+
 
                     if self.args.Classifier == 'BDT-Rad900':
-                        channelDictListMiss.append({'channel':'El','fakeLepColl':self.electronsFakeSel,'lep':ElColl[0],'met':self.corrMET,
+                        channelDictListMissR.append({'channel':'El','fakeLepColl':self.electronsFakeSel,'lep':ElColl[0],'met':self.corrMET,
                                                     'jets':self.ak4Jets,'bJets':self.ak4BJets,'lJets':self.ak4LightJetsByPt,
                                                     'j1':self.ak4BJets[0],'j2':self.ak4BJets[1],'j3':self.ak4LightJetsByPt[0],'j4':None,
                                                     'sel':ElSelObjAk4JetsLooseExclusiveResolved2b1j.sel,
-                                                    'suffix':ElSelObjAk4JetsLooseExclusiveResolved2b1j.selName+'_simple_900RBDT',
-                                                    'model_even':BDT_missReco900R_simple_even, 'model_odd':BDT_missReco900R_simple_odd})
-                        channelDictListMiss.append({'channel':'Mu','fakeLepColl':self.muonsFakeSel,'lep':MuColl[0],'met':self.corrMET,
+                                                    'suffix':ElSelObjAk4JetsLooseExclusiveResolved2b1j.selName+'_900RBDT',
+                                                    'model_even':BDT_missReco900R_simple_even, 'model_odd':BDT_missReco900R_simple_odd, 'nBins':2})
+
+                        channelDictListMissR.append({'channel':'Mu','fakeLepColl':self.muonsFakeSel,'lep':MuColl[0],'met':self.corrMET,
                                                     'jets':self.ak4Jets,'bJets':self.ak4BJets,'lJets':self.ak4LightJetsByPt,
                                                     'j1':self.ak4BJets[0],'j2':self.ak4BJets[1],'j3':self.ak4LightJetsByPt[0],'j4':None,
                                                     'sel':MuSelObjAk4JetsLooseExclusiveResolved2b1j.sel,
-                                                    'suffix':MuSelObjAk4JetsLooseExclusiveResolved2b1j.selName+'_simple_900RBDT',
-                                                    'model_even':BDT_missReco900R_simple_even, 'model_odd':BDT_missReco900R_simple_odd})
-                        
-                if "TightResolved2b2j" in jetplot_level:
-                    if self.args.Classifier == 'BDT-SM':
-                        channelDictListFull.append({'channel':'El','fakeLepColl':self.electronsFakeSel,'lep':ElColl[0],'met':self.corrMET,
-                                                    'jets':self.ak4Jets,'bJets':self.ak4BJets,'lJets':self.ak4LightJetsByPt,
-                                                    'j1':self.ak4BJets[0],'j2':self.ak4BJets[1],'j3':self.WjjPairs_el2b2j[0][0],'j4':self.WjjPairs_el2b2j[0][1],
-                                                    'sel':ElSelObjAk4JetsTightExclusiveResolved2b2j.sel,
-                                                    'suffix':ElSelObjAk4JetsTightExclusiveResolved2b2j.selName+'_simple_SMBDT',
-                                                    'model_even':BDT_fullRecoSM_simple_even, 'model_odd':BDT_fullRecoSM_simple_odd})
-                        channelDictListFull.append({'channel':'Mu','fakeLepColl':self.muonsFakeSel,'lep':MuColl[0],'met':self.corrMET,
-                                                    'jets':self.ak4Jets,'bJets':self.ak4BJets,'lJets':self.ak4LightJetsByPt,
-                                                    'j1':self.ak4BJets[0],'j2':self.ak4BJets[1],'j3':self.WjjPairs_mu2b2j[0][0],'j4':self.WjjPairs_mu2b2j[0][1],
-                                                    'sel':MuSelObjAk4JetsTightExclusiveResolved2b2j.sel,
-                                                    'suffix':MuSelObjAk4JetsTightExclusiveResolved2b2j.selName+'_simple_SMBDT',
-                                                    'model_even':BDT_fullRecoSM_simple_even, 'model_odd':BDT_fullRecoSM_simple_odd})
+                                                    'suffix':MuSelObjAk4JetsLooseExclusiveResolved2b1j.selName+'_900RBDT',
+                                                    'model_even':BDT_missReco900R_simple_even, 'model_odd':BDT_missReco900R_simple_odd, 'nBins':2})
 
-                    elif self.args.Classifier == 'BDT-Rad900':
-                        channelDictListFull.append({'channel':'El','fakeLepColl':self.electronsFakeSel,'lep':ElColl[0],'met':self.corrMET,
-                                                    'jets':self.ak4Jets,'bJets':self.ak4BJets,'lJets':self.ak4LightJetsByPt,
-                                                    'j1':self.ak4BJets[0],'j2':self.ak4BJets[1],'j3':self.WjjPairs_el2b2j[0][0],'j4':self.WjjPairs_el2b2j[0][1],
-                                                    'sel':ElSelObjAk4JetsTightExclusiveResolved2b2j.sel,
-                                                    'suffix':ElSelObjAk4JetsTightExclusiveResolved2b2j.selName+'_simple_900RBDT',
-                                                    'model_even':BDT_fullReco900R_simple_even, 'model_odd':BDT_fullReco900R_simple_odd})
-                        channelDictListFull.append({'channel':'Mu','fakeLepColl':self.muonsFakeSel,'lep':MuColl[0],'met':self.corrMET,
-                                                    'jets':self.ak4Jets,'bJets':self.ak4BJets,'lJets':self.ak4LightJetsByPt,
-                                                    'j1':self.ak4BJets[0],'j2':self.ak4BJets[1],'j3':self.WjjPairs_mu2b2j[0][0],'j4':self.WjjPairs_mu2b2j[0][1],
-                                                    'sel':MuSelObjAk4JetsTightExclusiveResolved2b2j.sel,
-                                                    'suffix':MuSelObjAk4JetsTightExclusiveResolved2b2j.selName+'_simple_900RBDT',
-                                                    'model_even':BDT_fullReco900R_simple_even, 'model_odd':BDT_fullReco900R_simple_odd})
+
+                if "SemiBoostedHbbWtoJ" in jetplot_level:
+                    if self.args.Classifier == 'BDT-SM':
+                        channelDictListMissB.append({'channel':'El','fakeLepColl':self.electronsFakeSel,'lep':ElColl[0],'met':self.corrMET,
+                                                    'jets':self.ak4Jets,'bJets':self.ak8BJets,'lJets':self.ak4JetsCleanedFromAk8b,
+                                                    'j1':self.ak8BJets[0].subJet1,'j2':self.ak8BJets[0].subJet2,'j3':self.ak4JetsCleanedFromAk8b[0],'j4':None,
+                                                    'sel':ElSelObjAk8bJetsHbbBoostedWtoJ.sel,
+                                                    'suffix':ElSelObjAk8bJetsHbbBoostedWtoJ.selName+'_SMBDT',
+                                                    'model_even':BDT_missRecoSM_simple_even, 'model_odd':BDT_missRecoSM_simple_odd, 'nBins':20})
+
+                        channelDictListMissB.append({'channel':'Mu','fakeLepColl':self.muonsFakeSel,'lep':MuColl[0],'met':self.corrMET,
+                                                    'jets':self.ak4Jets,'bJets':self.ak8BJets,'lJets':self.ak4JetsCleanedFromAk8b,
+                                                    'j1':self.ak8BJets[0].subJet1,'j2':self.ak8BJets[0].subJet2,'j3':self.ak4JetsCleanedFromAk8b[0],'j4':None,
+                                                    'sel':MuSelObjAk8bJetsHbbBoostedWtoJ.sel,
+                                                    'suffix':MuSelObjAk8bJetsHbbBoostedWtoJ.selName+'_SMBDT',
+                                                    'model_even':BDT_missRecoSM_simple_even, 'model_odd':BDT_missRecoSM_simple_odd, 'nBins':20})
+
+                    # will fix later
+                    if self.args.Classifier == 'BDT-Rad900':
+                        channelDictListMissB.append({'channel':'El','fakeLepColl':self.electronsFakeSel,'lep':ElColl[0],'met':self.corrMET,
+                                                    'jets':self.ak4Jets,'bJets':self.ak8BJets,'lJets':self.ak4JetsCleanedFromAk8b,
+                                                    'j1':self.ak8BJets[0].subJet1,'j2':self.ak8BJets[0].subJet2,'j3':self.ak4JetsCleanedFromAk8b[0],'j4':None,
+                                                    'sel':ElSelObjAk8bJetsHbbBoostedWtoJ.sel,
+                                                    'suffix':ElSelObjAk8bJetsHbbBoostedWtoJ.selName+'_SMBDT',
+                                                    'model_even':BDT_missRecoSM_simple_even, 'model_odd':BDT_missRecoSM_simple_odd, 'nBins':35})
+
+                        channelDictListMissB.append({'channel':'Mu','fakeLepColl':self.muonsFakeSel,'lep':MuColl[0],'met':self.corrMET,
+                                                    'jets':self.ak4Jets,'bJets':self.ak8BJets,'lJets':self.ak4JetsCleanedFromAk8b,
+                                                    'j1':self.ak8BJets[0].subJet1,'j2':self.ak8BJets[0].subJet2,'j3':self.ak4JetsCleanedFromAk8b[0],'j4':None,
+                                                    'sel':MuSelObjAk8bJetsHbbBoostedWtoJ.sel,
+                                                    'suffix':MuSelObjAk8bJetsHbbBoostedWtoJ.selName+'_SMBDT',
+                                                    'model_even':BDT_missRecoSM_simple_even, 'model_odd':BDT_missRecoSM_simple_odd, 'nBins':40})
                         
-            for channelDict in channelDictListFull:
-                plots.extend(makeSingleLeptonMachineLearningPlotsBDTfullReco(**channelDict,event=t.event,HLL=self.HLL))
-            for channelDict in channelDictListMiss:
-                plots.extend(makeSingleLeptonMachineLearningPlotsBDTmissReco(**channelDict,event=t.event,HLL=self.HLL))
+                # ----------------------------------------------- Tight Resolved 2b2j ---------------------------------------------------- #
+                if "TightResolved2b2j" in jetplot_level:
+                    if self.args.WhadTagger == 'Simple':
+                        if self.args.Classifier == 'BDT-SM':
+                            channelDictListFullR.append({'channel':'El','fakeLepColl':self.electronsFakeSel,'lep':ElColl[0],'met':self.corrMET,
+                                                        'jets':self.ak4Jets,'bJets':self.ak4BJets,'lJets':self.ak4LightJetsByPt,
+                                                        'j1':self.ak4BJets[0],'j2':self.ak4BJets[1],'j3':self.WjjPairs_el2b2j[0][0],'j4':self.WjjPairs_el2b2j[0][1],
+                                                        'sel':ElSelObjAk4JetsTightExclusiveResolved2b2j.sel,
+                                                        'suffix':ElSelObjAk4JetsTightExclusiveResolved2b2j.selName+'_Whad_Simple_SMBDT',
+                                                        'model_even':BDT_fullRecoSM_simple_even, 'model_odd':BDT_fullRecoSM_simple_odd, 'nBins':35})
+
+                            channelDictListFullR.append({'channel':'Mu','fakeLepColl':self.muonsFakeSel,'lep':MuColl[0],'met':self.corrMET,
+                                                        'jets':self.ak4Jets,'bJets':self.ak4BJets,'lJets':self.ak4LightJetsByPt,
+                                                        'j1':self.ak4BJets[0],'j2':self.ak4BJets[1],'j3':self.WjjPairs_mu2b2j[0][0],'j4':self.WjjPairs_mu2b2j[0][1],
+                                                        'sel':MuSelObjAk4JetsTightExclusiveResolved2b2j.sel,
+                                                        'suffix':MuSelObjAk4JetsTightExclusiveResolved2b2j.selName+'_Whad_Simple_SMBDT',
+                                                        'model_even':BDT_fullRecoSM_simple_even, 'model_odd':BDT_fullRecoSM_simple_odd, 'nBins':40})
+
+                        elif self.args.Classifier == 'BDT-Rad900':
+                            channelDictListFullR.append({'channel':'El','fakeLepColl':self.electronsFakeSel,'lep':ElColl[0],'met':self.corrMET,
+                                                        'jets':self.ak4Jets,'bJets':self.ak4BJets,'lJets':self.ak4LightJetsByPt,
+                                                        'j1':self.ak4BJets[0],'j2':self.ak4BJets[1],'j3':self.WjjPairs_el2b2j[0][0],'j4':self.WjjPairs_el2b2j[0][1],
+                                                        'sel':ElSelObjAk4JetsTightExclusiveResolved2b2j.sel,
+                                                        'suffix':ElSelObjAk4JetsTightExclusiveResolved2b2j.selName+'_Whad_Simple_900RBDT',
+                                                        'model_even':BDT_fullReco900R_simple_even, 'model_odd':BDT_fullReco900R_simple_odd, 'nBins':40})
+
+                            channelDictListFullR.append({'channel':'Mu','fakeLepColl':self.muonsFakeSel,'lep':MuColl[0],'met':self.corrMET,
+                                                        'jets':self.ak4Jets,'bJets':self.ak4BJets,'lJets':self.ak4LightJetsByPt,
+                                                        'j1':self.ak4BJets[0],'j2':self.ak4BJets[1],'j3':self.WjjPairs_mu2b2j[0][0],'j4':self.WjjPairs_mu2b2j[0][1],
+                                                        'sel':MuSelObjAk4JetsTightExclusiveResolved2b2j.sel,
+                                                        'suffix':MuSelObjAk4JetsTightExclusiveResolved2b2j.selName+'_Whad_Simple_900RBDT',
+                                                        'model_even':BDT_fullReco900R_simple_even, 'model_odd':BDT_fullReco900R_simple_odd, 'nBins':40})
+
+                        else:
+                            print('no Whad type or Classifier are mentioned :: No BDT response is plotted [TightResolved2b2j]!')
+
+
+                    elif self.args.WhadTagger == 'BDT':
+                        if self.args.Classifier == 'BDT-SM':
+                            channelDictListFullR.append({'channel':'El','fakeLepColl':self.electronsFakeSel,'lep':ElColl[0],'met':self.corrMET,
+                                                        'jets':self.ak4Jets,'bJets':self.ak4BJets,'lJets':self.ak4LightJetsByPt,
+                                                        'j1':self.ak4BJets[0],'j2':self.ak4BJets[1],
+                                                        'j3':self.remainingJetPairsByBDTScore_el_2b2j[0][0],'j4':self.remainingJetPairsByBDTScore_el_2b2j[0][1],
+                                                        'sel':ElSelObjAk4JetsTightExclusiveResolved2b2j.sel,
+                                                        'suffix':ElSelObjAk4JetsTightExclusiveResolved2b2j.selName+'_Whad_BDT_SMBDT',
+                                                        'model_even':BDT_fullRecoSM_BDT_even, 'model_odd':BDT_fullRecoSM_BDT_odd, 'nBins':35})
+                            channelDictListFullR.append({'channel':'Mu','fakeLepColl':self.muonsFakeSel,'lep':MuColl[0],'met':self.corrMET,
+                                                        'jets':self.ak4Jets,'bJets':self.ak4BJets,'lJets':self.ak4LightJetsByPt,
+                                                        'j1':self.ak4BJets[0],'j2':self.ak4BJets[1],
+                                                        'j3':self.remainingJetPairsByBDTScore_mu_2b2j[0][0],'j4':self.remainingJetPairsByBDTScore_mu_2b2j[0][1],
+                                                        'sel':MuSelObjAk4JetsTightExclusiveResolved2b2j.sel,
+                                                        'suffix':MuSelObjAk4JetsTightExclusiveResolved2b2j.selName+'_Whad_BDT_SMBDT',
+                                                        'model_even':BDT_fullRecoSM_BDT_even, 'model_odd':BDT_fullRecoSM_BDT_odd, 'nBins':40})
+
+                        elif self.args.Classifier == 'BDT-Rad900':
+                            channelDictListFullR.append({'channel':'El','fakeLepColl':self.electronsFakeSel,'lep':ElColl[0],'met':self.corrMET,
+                                                        'jets':self.ak4Jets,'bJets':self.ak4BJets,'lJets':self.ak4LightJetsByPt,
+                                                        'j1':self.ak4BJets[0],'j2':self.ak4BJets[1],
+                                                        'j3':self.remainingJetPairsByBDTScore_el_2b2j[0][0],'j4':self.remainingJetPairsByBDTScore_el_2b2j[0][1],
+                                                        'sel':ElSelObjAk4JetsTightExclusiveResolved2b2j.sel,
+                                                        'suffix':ElSelObjAk4JetsTightExclusiveResolved2b2j.selName+'_Whad_BDT_900RBDT',
+                                                        'model_even':BDT_fullReco900R_simple_even, 'model_odd':BDT_fullReco900R_simple_odd, 'nBins':40})
+                            channelDictListFullR.append({'channel':'Mu','fakeLepColl':self.muonsFakeSel,'lep':MuColl[0],'met':self.corrMET,
+                                                        'jets':self.ak4Jets,'bJets':self.ak4BJets,'lJets':self.ak4LightJetsByPt,
+                                                        'j1':self.ak4BJets[0],'j2':self.ak4BJets[1],
+                                                        'j3':self.remainingJetPairsByBDTScore_mu_2b2j[0][0],'j4':self.remainingJetPairsByBDTScore_mu_2b2j[0][1],
+                                                        'sel':MuSelObjAk4JetsTightExclusiveResolved2b2j.sel,
+                                                        'suffix':MuSelObjAk4JetsTightExclusiveResolved2b2j.selName+'_Whad_BDT_900RBDT',
+                                                        'model_even':BDT_fullReco900R_simple_even, 'model_odd':BDT_fullReco900R_simple_odd, 'nBins':40})
+                        else:
+                            print('no Whad type or Classifier are mentioned :: No BDT response is plotted! [TightResolved2b2j]')
+                        
+                    else :
+                        raise RuntimeError("Type of WhadTagger not mentioned for TightResolved2b2j category : No BDT response Plots")
+
+                # ----------------------------------------------- Tight Resolved 1b3j ---------------------------------------------------- #
+                if "TightResolved1b3j" in jetplot_level:
+                    if self.args.WhadTagger == 'Simple':
+                        if self.args.Classifier == 'BDT-SM':
+                            channelDictListFullR.append({'channel':'El','fakeLepColl':self.electronsFakeSel,'lep':ElColl[0],'met':self.corrMET,
+                                                        'jets':self.ak4Jets,'bJets':self.ak4BJets,'lJets':self.ak4LightJetsByPt,
+                                                        'j1':self.ak4BJets[0],'j2':self.ak4LightJetsByBtagScore[0],
+                                                        'j3':self.WjjPairs_el1b3j[0][0],'j4':self.WjjPairs_el1b3j[0][1],
+                                                        'sel':ElSelObjAk4JetsTightExclusiveResolved1b3j.sel,
+                                                        'suffix':ElSelObjAk4JetsTightExclusiveResolved1b3j.selName+'_Whad_Simple_SMBDT',
+                                                        'model_even':BDT_fullRecoSM_simple_even, 'model_odd':BDT_fullRecoSM_simple_odd, 'nBins':60})
+                            channelDictListFullR.append({'channel':'Mu','fakeLepColl':self.muonsFakeSel,'lep':MuColl[0],'met':self.corrMET,
+                                                        'jets':self.ak4Jets,'bJets':self.ak4BJets,'lJets':self.ak4LightJetsByPt,
+                                                        'j1':self.ak4BJets[0],'j2':self.ak4LightJetsByBtagScore[0],
+                                                        'j3':self.WjjPairs_mu1b3j[0][0],'j4':self.WjjPairs_mu1b3j[0][1],
+                                                        'sel':MuSelObjAk4JetsTightExclusiveResolved1b3j.sel,
+                                                        'suffix':MuSelObjAk4JetsTightExclusiveResolved1b3j.selName+'_Whad_Simple_SMBDT',
+                                                        'model_even':BDT_fullRecoSM_simple_even, 'model_odd':BDT_fullRecoSM_simple_odd, 'nBins':75})
+
+                        # will fix later
+                        elif self.args.Classifier == 'BDT-Rad900':
+                            channelDictListFullR.append({'channel':'El','fakeLepColl':self.electronsFakeSel,'lep':ElColl[0],'met':self.corrMET,
+                                                        'jets':self.ak4Jets,'bJets':self.ak4BJets,'lJets':self.ak4LightJetsByPt,
+                                                        'j1':self.ak4BJets[0],'j2':self.ak4BJets[1],'j3':self.WjjPairs_el2b2j[0][0],'j4':self.WjjPairs_el2b2j[0][1],
+                                                        'sel':ElSelObjAk4JetsTightExclusiveResolved2b2j.sel,
+                                                        'suffix':ElSelObjAk4JetsTightExclusiveResolved2b2j.selName+'_Whad_Simple_900RBDT',
+                                                        'model_even':BDT_fullReco900R_simple_even, 'model_odd':BDT_fullReco900R_simple_odd, 'nBins':40})
+                            channelDictListFullR.append({'channel':'Mu','fakeLepColl':self.muonsFakeSel,'lep':MuColl[0],'met':self.corrMET,
+                                                        'jets':self.ak4Jets,'bJets':self.ak4BJets,'lJets':self.ak4LightJetsByPt,
+                                                        'j1':self.ak4BJets[0],'j2':self.ak4BJets[1],'j3':self.WjjPairs_mu2b2j[0][0],'j4':self.WjjPairs_mu2b2j[0][1],
+                                                        'sel':MuSelObjAk4JetsTightExclusiveResolved2b2j.sel,
+                                                        'suffix':MuSelObjAk4JetsTightExclusiveResolved2b2j.selName+'_Whad_Simple_900RBDT',
+                                                        'model_even':BDT_fullReco900R_simple_even, 'model_odd':BDT_fullReco900R_simple_odd, 'nBins':40})
+
+                        else:
+                            print('no Whad type or Classifier are mentioned :: No BDT response is plotted [TightResolved1b3j]!')
+
+
+                    elif self.args.WhadTagger == 'BDT':
+                        if self.args.Classifier == 'BDT-SM':
+                            channelDictListFullR.append({'channel':'El','fakeLepColl':self.electronsFakeSel,'lep':ElColl[0],'met':self.corrMET,
+                                                        'jets':self.ak4Jets,'bJets':self.ak4BJets,'lJets':self.ak4LightJetsByPt,
+                                                        'j1':self.ak4BJets[0],'j2':self.ak4LightJetsByBtagScore[0],
+                                                        'j3':self.remainingJetPairsByBDTScore_el_1b3j[0][0],'j4':self.remainingJetPairsByBDTScore_el_1b3j[0][1],
+                                                        'sel':ElSelObjAk4JetsTightExclusiveResolved1b3j.sel,
+                                                        'suffix':ElSelObjAk4JetsTightExclusiveResolved1b3j.selName+'_Whad_BDT_SMBDT',
+                                                        'model_even':BDT_fullRecoSM_BDT_even, 'model_odd':BDT_fullRecoSM_BDT_odd, 'nBins':60})
+                            channelDictListFullR.append({'channel':'Mu','fakeLepColl':self.muonsFakeSel,'lep':MuColl[0],'met':self.corrMET,
+                                                        'jets':self.ak4Jets,'bJets':self.ak4BJets,'lJets':self.ak4LightJetsByPt,
+                                                        'j1':self.ak4BJets[0],'j2':self.ak4LightJetsByBtagScore[0],
+                                                        'j3':self.remainingJetPairsByBDTScore_mu_1b3j[0][0],'j4':self.remainingJetPairsByBDTScore_mu_1b3j[0][1],
+                                                        'sel':MuSelObjAk4JetsTightExclusiveResolved1b3j.sel,
+                                                        'suffix':MuSelObjAk4JetsTightExclusiveResolved1b3j.selName+'_Whad_BDT_SMBDT',
+                                                        'model_even':BDT_fullRecoSM_BDT_even, 'model_odd':BDT_fullRecoSM_BDT_odd, 'nBins':75})
+                        # will fix later
+                        elif self.args.Classifier == 'BDT-Rad900':
+                            channelDictListFullR.append({'channel':'El','fakeLepColl':self.electronsFakeSel,'lep':ElColl[0],'met':self.corrMET,
+                                                        'jets':self.ak4Jets,'bJets':self.ak4BJets,'lJets':self.ak4LightJetsByPt,
+                                                        'j1':self.ak4BJets[0],'j2':self.ak4LightJetsByBtagScore[0],
+                                                        'j3':self.remainingJetPairsByBDTScore_el_1b3j[0][0],'j4':self.remainingJetPairsByBDTScore_el_1b3j[0][1],
+                                                        'sel':ElSelObjAk4JetsTightExclusiveResolved1b3j.sel,
+                                                        'suffix':ElSelObjAk4JetsTightExclusiveResolved1b3j.selName+'_Whad_BDT_900RBDT',
+                                                        'model_even':BDT_fullReco900R_simple_even, 'model_odd':BDT_fullReco900R_simple_odd, 'nBins':40})
+                            channelDictListFullR.append({'channel':'Mu','fakeLepColl':self.muonsFakeSel,'lep':MuColl[0],'met':self.corrMET,
+                                                        'jets':self.ak4Jets,'bJets':self.ak4BJets,'lJets':self.ak4LightJetsByPt,
+                                                        'j1':self.ak4BJets[0],'j2':self.ak4LightJetsByBtagScore[0],
+                                                        'j3':self.remainingJetPairsByBDTScore_mu_1b3j[0][0],'j4':self.remainingJetPairsByBDTScore_mu_1b3j[0][1],
+                                                        'sel':MuSelObjAk4JetsTightExclusiveResolved1b3j.sel,
+                                                        'suffix':MuSelObjAk4JetsTightExclusiveResolved1b3j.selName+'_Whad_BDT_900RBDT',
+                                                        'model_even':BDT_fullReco900R_simple_even, 'model_odd':BDT_fullReco900R_simple_odd, 'nBins':40})
+                        else:
+                            print('no Whad type or Classifier are mentioned :: No BDT response is plotted! [TightResolved1b3j]')
+                        
+                    else :
+                        raise RuntimeError("Type of WhadTagger not mentioned for TightResolved1b3j category : No BDT response Plots")
+
+
+                # ----------------------------------------------- Hbb Boosted Wjj Resolved ---------------------------------------------------- #
+                if "SemiBoostedHbbWtoJJ" in jetplot_level:
+                    if self.args.WhadTagger == 'Simple':
+                        if self.args.Classifier == 'BDT-SM':
+                            channelDictListFullB.append({'channel':'El','fakeLepColl':self.electronsFakeSel,'lep':ElColl[0],'met':self.corrMET,
+                                                        'jets':self.ak4Jets,'bJets':self.ak8BJets,'lJets':self.ak4JetsCleanedFromAk8b,
+                                                        'j1':self.ak8BJets[0].subJet1,'j2':self.ak8BJets[0].subJet2,
+                                                        'j3':self.WjjPairs_elSB[0][0],'j4':self.WjjPairs_elSB[0][1],
+                                                        'sel':ElSelObjAk8bJetsHbbBoostedWtoJJ.sel,
+                                                        'suffix':ElSelObjAk8bJetsHbbBoostedWtoJJ.selName+'_Whad_Simple_SMBDT',
+                                                        'model_even':BDT_fullRecoSM_simple_even, 'model_odd':BDT_fullRecoSM_simple_odd, 'nBins':35})
+                            channelDictListFullB.append({'channel':'Mu','fakeLepColl':self.muonsFakeSel,'lep':MuColl[0],'met':self.corrMET,
+                                                        'jets':self.ak4Jets,'bJets':self.ak8BJets,'lJets':self.ak4JetsCleanedFromAk8b,
+                                                        'j1':self.ak8BJets[0].subJet1,'j2':self.ak8BJets[0].subJet2,
+                                                        'j3':self.WjjPairs_muSB[0][0],'j4':self.WjjPairs_muSB[0][1],
+                                                        'sel':MuSelObjAk8bJetsHbbBoostedWtoJJ.sel,
+                                                        'suffix':MuSelObjAk8bJetsHbbBoostedWtoJJ.selName+'_Whad_Simple_SMBDT',
+                                                        'model_even':BDT_fullRecoSM_simple_even, 'model_odd':BDT_fullRecoSM_simple_odd, 'nBins':50})
+
+                        # will fix later
+                        elif self.args.Classifier == 'BDT-Rad900':
+                            channelDictListFullB.append({'channel':'El','fakeLepColl':self.electronsFakeSel,'lep':ElColl[0],'met':self.corrMET,
+                                                        'jets':self.ak4Jets,'bJets':self.ak4BJets,'lJets':self.ak4LightJetsByPt,
+                                                        'j1':self.ak4BJets[0],'j2':self.ak4BJets[1],'j3':self.WjjPairs_el2b2j[0][0],'j4':self.WjjPairs_el2b2j[0][1],
+                                                        'sel':ElSelObjAk4JetsTightExclusiveResolved2b2j.sel,
+                                                        'suffix':ElSelObjAk4JetsTightExclusiveResolved2b2j.selName+'_Whad_Simple_900RBDT',
+                                                        'model_even':BDT_fullReco900R_simple_even, 'model_odd':BDT_fullReco900R_simple_odd, 'nBins':40})
+                            channelDictListFullB.append({'channel':'Mu','fakeLepColl':self.muonsFakeSel,'lep':MuColl[0],'met':self.corrMET,
+                                                        'jets':self.ak4Jets,'bJets':self.ak4BJets,'lJets':self.ak4LightJetsByPt,
+                                                        'j1':self.ak4BJets[0],'j2':self.ak4BJets[1],'j3':self.WjjPairs_mu2b2j[0][0],'j4':self.WjjPairs_mu2b2j[0][1],
+                                                        'sel':MuSelObjAk4JetsTightExclusiveResolved2b2j.sel,
+                                                        'suffix':MuSelObjAk4JetsTightExclusiveResolved2b2j.selName+'_Whad_Simple_900RBDT',
+                                                        'model_even':BDT_fullReco900R_simple_even, 'model_odd':BDT_fullReco900R_simple_odd, 'nBins':40})
+
+                        else:
+                            print('no Whad type or Classifier are mentioned :: No BDT response is plotted [TightResolved1b3j]!')
+
+
+                    elif self.args.WhadTagger == 'BDT':
+                        if self.args.Classifier == 'BDT-SM':
+                            channelDictListFullB.append({'channel':'El','fakeLepColl':self.electronsFakeSel,'lep':ElColl[0],'met':self.corrMET,
+                                                        'jets':self.ak4Jets,'bJets':self.ak8BJets,'lJets':self.ak4JetsCleanedFromAk8b,
+                                                        'j1':self.ak8BJets[0].subJet1,'j2':self.ak8BJets[0].subJet2,
+                                                        'j3':self.remainingJetPairsByBDTScore_el_Hbb[0][0],'j4':self.remainingJetPairsByBDTScore_el_Hbb[0][1],
+                                                        'sel':ElSelObjAk8bJetsHbbBoostedWtoJJ.sel,
+                                                        'suffix':ElSelObjAk8bJetsHbbBoostedWtoJJ.selName+'_Whad_BDT_SMBDT',
+                                                        'model_even':BDT_fullRecoSM_BDT_even, 'model_odd':BDT_fullRecoSM_BDT_odd, 'nBins':35})
+                            channelDictListFullB.append({'channel':'Mu','fakeLepColl':self.muonsFakeSel,'lep':MuColl[0],'met':self.corrMET,
+                                                        'jets':self.ak4Jets,'bJets':self.ak8BJets,'lJets':self.ak4JetsCleanedFromAk8b,
+                                                        'j1':self.ak8BJets[0].subJet1,'j2':self.ak8BJets[0].subJet2,
+                                                        'j3':self.remainingJetPairsByBDTScore_mu_Hbb[0][0],'j4':self.remainingJetPairsByBDTScore_mu_Hbb[0][1],
+                                                        'sel':MuSelObjAk8bJetsHbbBoostedWtoJJ.sel,
+                                                        'suffix':MuSelObjAk8bJetsHbbBoostedWtoJJ.selName+'_Whad_BDT_SMBDT',
+                                                        'model_even':BDT_fullRecoSM_BDT_even, 'model_odd':BDT_fullRecoSM_BDT_odd, 'nBins':50})
+                        # will fix later
+                        elif self.args.Classifier == 'BDT-Rad900':
+                            channelDictListFullB.append({'channel':'El','fakeLepColl':self.electronsFakeSel,'lep':ElColl[0],'met':self.corrMET,
+                                                        'jets':self.ak4Jets,'bJets':self.ak4BJets,'lJets':self.ak4LightJetsByPt,
+                                                        'j1':self.ak4BJets[0],'j2':self.ak4LightJetsByBtagScore[0],
+                                                        'j3':self.remainingJetPairsByBDTScore_el_1b3j[0][0],'j4':self.remainingJetPairsByBDTScore_el_1b3j[0][1],
+                                                        'sel':ElSelObjAk4JetsTightExclusiveResolved1b3j.sel,
+                                                        'suffix':ElSelObjAk4JetsTightExclusiveResolved1b3j.selName+'_Whad_BDT_900RBDT',
+                                                        'model_even':BDT_fullReco900R_simple_even, 'model_odd':BDT_fullReco900R_simple_odd, 'nBins':40})
+                            channelDictListFullB.append({'channel':'Mu','fakeLepColl':self.muonsFakeSel,'lep':MuColl[0],'met':self.corrMET,
+                                                        'jets':self.ak4Jets,'bJets':self.ak4BJets,'lJets':self.ak4LightJetsByPt,
+                                                        'j1':self.ak4BJets[0],'j2':self.ak4LightJetsByBtagScore[0],
+                                                        'j3':self.remainingJetPairsByBDTScore_mu_1b3j[0][0],'j4':self.remainingJetPairsByBDTScore_mu_1b3j[0][1],
+                                                        'sel':MuSelObjAk4JetsTightExclusiveResolved1b3j.sel,
+                                                        'suffix':MuSelObjAk4JetsTightExclusiveResolved1b3j.selName+'_Whad_BDT_900RBDT',
+                                                        'model_even':BDT_fullReco900R_simple_even, 'model_odd':BDT_fullReco900R_simple_odd, 'nBins':40})
+                        else:
+                            print('no Whad type or Classifier are mentioned :: No BDT response is plotted! [TightResolved1b3j]')
+                        
+                    else :
+                        raise RuntimeError("Type of WhadTagger not mentioned for TightResolved1b3j category : No BDT response Plots")
+
+
+            for channelDict in channelDictListFullR:
+                plots.extend(makeSingleLeptonMachineLearningPlotsBDTfullRecoResolved(**channelDict,event=t.event,HLL=self.HLL))
+            for channelDict in channelDictListMissR:
+                plots.extend(makeSingleLeptonMachineLearningPlotsBDTmissRecoResolved(**channelDict,event=t.event,HLL=self.HLL))
+            for channelDict in channelDictListFullB:
+                plots.extend(makeSingleLeptonMachineLearningPlotsBDTfullRecoBoosted(**channelDict,event=t.event,HLL=self.HLL))
+            for channelDict in channelDictListMissB:
+                plots.extend(makeSingleLeptonMachineLearningPlotsBDTmissRecoBoosted(**channelDict,event=t.event,HLL=self.HLL))
             
         #----- Add the Yield plots -----#
         plots.extend(self.yieldPlots.returnPlots())

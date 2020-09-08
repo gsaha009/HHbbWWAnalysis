@@ -1024,7 +1024,7 @@ One lepton and and one jet argument must be specified in addition to the require
         self.lambda_cleanAk4Jets = lambda j : op.AND(
                                                 op.NOT(op.rng_any(self.electronsFakeSel, lambda ele : op.deltaR(j.p4, ele.p4) <= 0.4 )), 
                                                 op.NOT(op.rng_any(self.muonsFakeSel, lambda mu : op.deltaR(j.p4, mu.p4) <= 0.4 )))
-            # remove jets within cone of DR<0.4 of preselected electrons and muons
+        # remove jets within cone of DR<0.4 of preselected electrons and muons
         self.ak4Jets = op.select(self.ak4JetsPreSel,self.lambda_cleanAk4Jets) # Pt ordered
     
         ############     Btagging     #############
@@ -1102,6 +1102,7 @@ One lepton and and one jet argument must be specified in addition to the require
                                                         op.AND(fatjet.subJet2.pt >= 30, fatjet.subJet2.btagDeepB > 0.4184))
             self.lambda_ak8noBtag = lambda fatjet : op.NOT(op.OR(op.AND(fatjet.subJet1.pt >= 30, fatjet.subJet1.btagDeepB > 0.4184),
                                                         op.AND(fatjet.subJet2.pt >= 30, fatjet.subJet2.btagDeepB > 0.4184)))
+
 
         self.ak8BJets = op.select(self.ak8Jets, self.lambda_ak8Btag)
         self.ak8nonBJets = op.select(self.ak8Jets, self.lambda_ak8noBtag)
