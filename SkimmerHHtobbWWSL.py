@@ -367,6 +367,8 @@ class SkimmerNanoHHtobbWWSL(BaseNanoHHtobbWW,SkimmerModule):
                 jet3 = WjjPairs_2b2j[0][0]
                 jet4 = WjjPairs_2b2j[0][1]
 
+            varsToKeep['nAk4Jets']  = op.rng_len(self.ak4Jets)
+            varsToKeep['nAk4BJets'] = op.rng_len(self.ak4BJets)
             varsToKeep['j1_Px']  = self.HLL.bJetCorrP4(jet1).Px()
             varsToKeep['j1_Py']  = self.HLL.bJetCorrP4(jet1).Py()
             varsToKeep['j1_Pz']  = self.HLL.bJetCorrP4(jet1).Pz()
@@ -398,6 +400,7 @@ class SkimmerNanoHHtobbWWSL(BaseNanoHHtobbWW,SkimmerModule):
             varsToKeep['j1j2_DPhi'] = op.abs(op.deltaPhi(jet1.p4,jet2.p4)) # Might need abs
             varsToKeep['j2j3_DPhi'] = op.abs(op.deltaPhi(jet2.p4,jet3.p4)) # Might need abs
             varsToKeep['j1j2_M']    = op.invariant_mass(self.HLL.bJetCorrP4(jet1),self.HLL.bJetCorrP4(jet2)) 
+            varsToKeep['cosThetaS_Hbb'] = self.HLL.comp_cosThetaS(self.HLL.bJetCorrP4(jet1), self.HLL.bJetCorrP4(jet2))
 
             # highLevel variables
             varsToKeep['j1MetDPhi'] = op.abs(self.HLL.SinglepMet_dPhi(jet1, MET))
@@ -410,13 +413,16 @@ class SkimmerNanoHHtobbWWSL(BaseNanoHHtobbWW,SkimmerModule):
             varsToKeep['j1LepDPhi'] = op.abs(op.deltaPhi(jet1.p4, lepton.p4))
             varsToKeep['j2LepDPhi'] = op.abs(op.deltaPhi(jet2.p4, lepton.p4))
             varsToKeep['j3LepDPhi'] = op.abs(op.deltaPhi(jet3.p4, lepton.p4))
+            varsToKeep['minDR_lep_allJets'] = self.HLL.mindr_lep1_jet(lepton, self.ak4Jets)
+            varsToKeep['mT_top_3particle']  = op.min(self.HLL.mT2(self.HLL.bJetCorrP4(jet1),lepton.p4 ,MET.p4), self.HLL.mT2(self.HLL.bJetCorrP4(jet2), lepton.p4, MET.p4))
+
 
             if self.args.LooseResolved0b3j or self.args.LooseResolved1b2j or self.args.LooseResolved2b1j:
-                varsToKeep['minJetDR']    = self.HLL.MinDiJetDRLoose(jet1,jet2,jet3)
-                varsToKeep['minLepJetDR'] = self.HLL.MinDR_lep3j(lepton,jet1,jet2,jet3)
-                varsToKeep['HT2_lepJetMet']         = self.HLL.HT2_l3jmet(lepton,jet1,jet2,jet3,MET)
-                varsToKeep['HT2R_lepJetMet']        = self.HLL.HT2R_l3jmet(lepton,jet1,jet2,jet3,MET)
-
+                varsToKeep['minJetDR']       = self.HLL.MinDiJetDRLoose(jet1,jet2,jet3)
+                varsToKeep['minLepJetDR']    = self.HLL.MinDR_lep3j(lepton,jet1,jet2,jet3)
+                varsToKeep['HT2_lepJetMet']  = self.HLL.HT2_l3jmet(lepton,jet1,jet2,jet3,MET)
+                varsToKeep['HT2R_lepJetMet'] = self.HLL.HT2R_l3jmet(lepton,jet1,jet2,jet3,MET)
+                
             if self.args.TightResolved0b4j or self.args.TightResolved1b3j or self.args.TightResolved2b2j:
                 varsToKeep['j4_Px']  = jet4.p4.Px()
                 varsToKeep['j4_Py']  = jet4.p4.Py()
@@ -437,11 +443,13 @@ class SkimmerNanoHHtobbWWSL(BaseNanoHHtobbWW,SkimmerModule):
                 varsToKeep['w1w2_MT']     = self.HLL.MT_W1W2_ljj(lepton,jet3,jet4,MET)
                 varsToKeep['HT2_lepJetMet']         = self.HLL.HT2_l4jmet(lepton,jet1,jet2,jet3,jet4,MET)
                 varsToKeep['HT2R_lepJetMet']        = self.HLL.HT2R_l4jmet(lepton,jet1,jet2,jet3,jet4,MET)
-                varsToKeep['mT_top_3particle']      = op.min(self.HLL.mT2(jet3, lepton, MET), self.HLL.mT2(jet4,lepton, MET))
 
                 varsToKeep['HWW_Mass'] = self.HLL.HWW_simple(jet3.p4,jet4.p4,lepton.p4,MET).M()
                 varsToKeep['HWW_Simple_Mass'] = self.HLL.HWW_met_simple(jet3.p4,jet4.p4,lepton.p4,MET.p4).M()
                 varsToKeep['HWW_dR'] = self.HLL.dR_Hww(jet3.p4,jet4.p4,lepton.p4,MET)
+                varsToKeep['cosThetaS_Wjj_simple'] = self.HLL.comp_cosThetaS(jet3.p4, jet4.p4)
+                varsToKeep['cosThetaS_WW_simple_met'] = self.HLL.comp_cosThetaS(self.HLL.Wjj_simple(jet3.p4,jet4.p4), self.HLL.Wlep_met_simple(lepton.p4, MET.p4))
+                varsToKeep['cosThetaS_HH_simple_met'] = self.HLL.comp_cosThetaS(self.HLL.bJetCorrP4(jet1)+self.HLL.bJetCorrP4(jet2), self.HLL.HWW_met_simple(jet3.p4,jet4.p4,lepton.p4,MET.p4))
 
         #----- Fatjet variables -----#
         if any([self.args.__dict__[item] for item in ["Ak8","SemiBoostedHbbWtoJ","SemiBoostedHbbWtoJJ"]]):

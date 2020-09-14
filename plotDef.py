@@ -863,7 +863,7 @@ def makeTwoAk4JetsPlots(sel, leadjet, subleadjet, suffix, channel, lead_is_b=Fal
     return plots
 
 ##########################  JETS (AK4) PLOT #################################
-def makeSingleLeptonAk8JetsPlots(sel,j1,j2,j3,suffix,channel,has1fat=False,has2fat=False,has1fat1slim=False,has1fat2slim=False):
+def makeSingleLeptonAk8JetsPlots(sel,j1,j2,j3,suffix,channel,nMedBJets,has1fat=False,has2fat=False,has1fat1slim=False,has1fat2slim=False):
     """
     Make fatjet subjet basic plots
     sel         = refine selection 
@@ -885,6 +885,14 @@ def makeSingleLeptonAk8JetsPlots(sel,j1,j2,j3,suffix,channel,has1fat=False,has2f
     j3_name = "SubLeadAk4NonBJet"
 
     # 1st-jet : FatJet #
+    plots.append(Plot.make1D("%s_%s_nMedSubBjets_%s"%(channel,suffix,j1_name),
+                             nMedBJets,
+                             sel,
+                             EquidistantBinning(6,-0.5,5.5),
+                             title='nMediumBtagged SubJets of %s'%j1_name,
+                             xTitle="nSubJets_MediumBTagged%s"%j1_name,
+                             plotopts = channelLabel))
+
     plots.append(Plot.make1D("%s_%s_pT_%s"%(channel,suffix,j1_name),
                              j1.p4.pt(),
                              sel,
@@ -1799,7 +1807,7 @@ def makeSingleLeptonMachineLearningPlotsBDTfullRecoResolved(sel,fakeLepColl,lep,
     return plots
 
 
-def makeSingleLeptonMachineLearningPlotsBDTfullRecoBoosted(sel,fakeLepColl,lep,met,jets,bJets,lJets,j1,j2,j3,j4,suffix,channel,model_even,model_odd,nBins,event,HLL):
+def makeSingleLeptonMachineLearningPlotsBDTfullRecoBoosted(sel,fakeLepColl,lep,met,jets,bJets,lJets,j1,j2,j3,j4,suffix,channel,model_even,model_odd,nBins,nMedBJets,event,HLL):
     plots = []
     channelLabel = SingleLeptonChannelTitleLabel(channel)
 
@@ -1815,7 +1823,8 @@ def makeSingleLeptonMachineLearningPlotsBDTfullRecoBoosted(sel,fakeLepColl,lep,m
               HLL.comp_cosThetaS(HLL.Wjj_simple(j3.p4,j4.p4),HLL.Wlep_met_simple(lep.p4,met.p4)),                        # cosThetaS_WW_simple_met  
               HLL.comp_cosThetaS(j1.p4+j2.p4, HLL.HWW_met_simple(j3.p4,j4.p4,lep.p4,met.p4)),         # cosThetaS_HH_simple_met     
               op.rng_len(jets),                                                                       # nJet
-              op.rng_len(bJets),                                                                      # nBJetMedium
+              #op.rng_len(bJets),                                                                      # nBJetMedium
+              nMedBJets,
               op.deltaR(j1.p4, lep.p4),                                                               # dR_b1lep
               op.deltaR(j2.p4, lep.p4),                                                               # dR_b2lep
               HLL.lambdaConePt(lep),                                                                  # lep_conePt
@@ -1885,7 +1894,7 @@ def makeSingleLeptonMachineLearningPlotsBDTmissRecoResolved(sel,fakeLepColl,lep,
     return plots
 
 
-def makeSingleLeptonMachineLearningPlotsBDTmissRecoBoosted(sel,fakeLepColl,lep,met,jets,bJets,lJets,j1,j2,j3,j4,suffix,channel,model_even,model_odd,nBins,event,HLL):
+def makeSingleLeptonMachineLearningPlotsBDTmissRecoBoosted(sel,fakeLepColl,lep,met,jets,bJets,lJets,j1,j2,j3,j4,suffix,channel,model_even,model_odd,nBins,nMedBJets,event,HLL):
     plots = []
     channelLabel = SingleLeptonChannelTitleLabel(channel)
 
@@ -1899,7 +1908,8 @@ def makeSingleLeptonMachineLearningPlotsBDTmissRecoBoosted(sel,fakeLepColl,lep,m
               j1.pt,                                                                                  # selJet1_Hbb_pT
               j2.pt,                                                                                  # selJet2_Hbb_pT 
               op.deltaR(j3.p4, HLL.Wlep_simple(j1.p4,j2.p4,lep.p4,met)),                              # dr_Wj1_lep_simple
-              op.rng_len(bJets),                                                                      # nBJetMedium
+              nMedBJets,
+              #op.rng_len(bJets),                                                                      # nBJetMedium
               HLL.lambdaConePt(lep),                                                                  # lep_conePt
               HLL.MET_LD(met,jets,fakeLepColl),                                                       # met_LD
               HLL.HTmiss(fakeLepColl,j1.p4,j2.p4,j3.p4)                                               # HT

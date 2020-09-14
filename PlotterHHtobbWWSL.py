@@ -285,7 +285,7 @@ class PlotterNanoHHtobbWWSL(BaseNanoHHtobbWW,DataDrivenBackgroundHistogramsModul
                     plots.append(objectsNumberPlot(**{k:channelDict[k] for k in commonItems},**FatJetsN))
                     plots.append(objectsNumberPlot(**{k:channelDict[k] for k in commonItems},**SlimJetsN))
                     # Ak8 Jets #
-                    plots.extend(makeSingleLeptonAk8JetsPlots(**{k:channelDict[k] for k in FatJetKeys}))
+                    plots.extend(makeSingleLeptonAk8JetsPlots(**{k:channelDict[k] for k in FatJetKeys},nMedBJets=self.nMediumBTaggedSubJets))
                     # MET #
                     plots.extend(makeMETPlots(**{k:channelDict[k] for k in commonItems}, met=self.corrMET))
 
@@ -619,11 +619,11 @@ class PlotterNanoHHtobbWWSL(BaseNanoHHtobbWW,DataDrivenBackgroundHistogramsModul
                     plots.append(objectsNumberPlot(**{k:channelDict[k] for k in commonItems},**FatJetsN))
                     plots.append(objectsNumberPlot(**{k:channelDict[k] for k in commonItems},**FatBJetsN))       
                     # Ak8 Jets #
-                    plots.extend(makeSingleLeptonAk8JetsPlots(**{k:channelDict[k] for k in FatJetKeys}))
+                    plots.extend(makeSingleLeptonAk8JetsPlots(**{k:channelDict[k] for k in FatJetKeys}, nMedBJets=self.nMediumBTaggedSubJets))
                     # MET #
                     plots.extend(makeMETPlots(**{k:channelDict[k] for k in commonItems}, met=self.corrMET))
                     # HighLevel #
-                    plots.extend(makeHighLevelPlotsBoosted(**{k:channelDict[k] for k in BoostedKeys},HLL=self.HLL))
+                    plots.extend(makeHighLevelPlotsBoosted(**{k:channelDict[k] for k in BoostedKeys}, HLL=self.HLL))
             
             if "Boosted" in jetsel_level:
                 print ("......... Processing Boosted category selection")        
@@ -654,7 +654,7 @@ class PlotterNanoHHtobbWWSL(BaseNanoHHtobbWW,DataDrivenBackgroundHistogramsModul
                     plots.append(objectsNumberPlot(**{k:channelDict[k] for k in commonItems},**FatJetsN))
                     plots.append(objectsNumberPlot(**{k:channelDict[k] for k in commonItems},**FatBJetsN))       
                     # Ak8 Jets #
-                    plots.extend(makeSingleLeptonAk8JetsPlots(**{k:channelDict[k] for k in FatJetKeys}))
+                    plots.extend(makeSingleLeptonAk8JetsPlots(**{k:channelDict[k] for k in FatJetKeys},nMedBJets=self.nMediumBTaggedSubJets))
                     # MET #
                     plots.extend(makeMETPlots(**{k:channelDict[k] for k in commonItems}, met=self.corrMET))
 
@@ -998,9 +998,9 @@ class PlotterNanoHHtobbWWSL(BaseNanoHHtobbWW,DataDrivenBackgroundHistogramsModul
             for channelDict in channelDictListMissR:
                 plots.extend(makeSingleLeptonMachineLearningPlotsBDTmissRecoResolved(**channelDict,event=t.event,HLL=self.HLL))
             for channelDict in channelDictListFullB:
-                plots.extend(makeSingleLeptonMachineLearningPlotsBDTfullRecoBoosted(**channelDict,event=t.event,HLL=self.HLL))
+                plots.extend(makeSingleLeptonMachineLearningPlotsBDTfullRecoBoosted(**channelDict,nMedBJets=self.nMediumBTaggedSubJets,event=t.event,HLL=self.HLL))
             for channelDict in channelDictListMissB:
-                plots.extend(makeSingleLeptonMachineLearningPlotsBDTmissRecoBoosted(**channelDict,event=t.event,HLL=self.HLL))
+                plots.extend(makeSingleLeptonMachineLearningPlotsBDTmissRecoBoosted(**channelDict,nMedBJets=self.nMediumBTaggedSubJets,event=t.event,HLL=self.HLL))
             
         #----- Add the Yield plots -----#
         plots.extend(self.yieldPlots.returnPlots())
