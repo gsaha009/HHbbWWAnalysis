@@ -56,9 +56,9 @@ class SkimmerNanoHHtobbWWSL(BaseNanoHHtobbWW,SkimmerModule):
             # [0] -> we take the first and only key and value because restricted to one lepton selection
             selLeptonList = list(selLeptonDict.values())[0]
             if self.args.Channel == "El":
-                selObj = selLeptonList[0] # First item of list is ElEl selection
+                selObj = selLeptonList[0] # First item of list is El selection
             if self.args.Channel == "Mu":
-                selObj = selLeptonList[1] # Second item of list is MuMu selection
+                selObj = selLeptonList[1] # Second item of list is Mu selection
 
             #----- Jet selection -----#
             # Since the selections in one line, we can use the non copy option of the selection to modify the selection object internally
@@ -288,6 +288,11 @@ class SkimmerNanoHHtobbWWSL(BaseNanoHHtobbWW,SkimmerModule):
         #---------------------------------------------------------------------------------------# 
         #                                    Selection tree                                     #
         #---------------------------------------------------------------------------------------#
+        
+        #----- EVT variables -----#
+        varsToKeep["event"]     = None # Already in tree                                               
+        varsToKeep["run"]       = None # Already in tree                                                                                                                                        
+        varsToKeep["ls"]        = t.luminosityBlock
 
         #----- MET variables -----#
         MET = self.corrMET
@@ -367,8 +372,8 @@ class SkimmerNanoHHtobbWWSL(BaseNanoHHtobbWW,SkimmerModule):
                 jet3 = WjjPairs_2b2j[0][0]
                 jet4 = WjjPairs_2b2j[0][1]
 
-            varsToKeep['nAk4Jets']  = op.rng_len(self.ak4Jets)
-            varsToKeep['nAk4BJets'] = op.rng_len(self.ak4BJets)
+            varsToKeep['nAk4Jets']  = op.static_cast("UInt_t",op.rng_len(self.ak4Jets))
+            varsToKeep['nAk4BJets'] = op.static_cast("UInt_t",op.rng_len(self.ak4BJets))
             varsToKeep['j1_Px']  = self.HLL.bJetCorrP4(jet1).Px()
             varsToKeep['j1_Py']  = self.HLL.bJetCorrP4(jet1).Py()
             varsToKeep['j1_Pz']  = self.HLL.bJetCorrP4(jet1).Pz()
@@ -376,6 +381,7 @@ class SkimmerNanoHHtobbWWSL(BaseNanoHHtobbWW,SkimmerModule):
             varsToKeep['j1_pt']  = self.HLL.bJetCorrP4(jet1).Pt()
             varsToKeep['j1_eta'] = self.HLL.bJetCorrP4(jet1).Eta()
             varsToKeep['j1_phi'] = self.HLL.bJetCorrP4(jet1).Phi()
+            varsToKeep['j1_bTagDeepFlavB'] = jet1.btagDeepFlavB
 
             varsToKeep['j2_Px']  = self.HLL.bJetCorrP4(jet2).Px()
             varsToKeep['j2_Py']  = self.HLL.bJetCorrP4(jet2).Py()
@@ -384,6 +390,7 @@ class SkimmerNanoHHtobbWWSL(BaseNanoHHtobbWW,SkimmerModule):
             varsToKeep['j2_pt']  = self.HLL.bJetCorrP4(jet2).Pt()
             varsToKeep['j2_eta'] = self.HLL.bJetCorrP4(jet2).Eta()
             varsToKeep['j2_phi'] = self.HLL.bJetCorrP4(jet2).Phi()
+            varsToKeep['j2_bTagDeepFlavB'] = jet2.btagDeepFlavB
 
             varsToKeep['j3_Px']  = jet3.p4.Px()
             varsToKeep['j3_Py']  = jet3.p4.Py()
@@ -481,6 +488,17 @@ class SkimmerNanoHHtobbWWSL(BaseNanoHHtobbWW,SkimmerModule):
             varsToKeep['fj_sub2eta'] = fatjet.subJet2.eta
             varsToKeep['fj_phi'] = fatjet.phi
             varsToKeep['fj_softdropMass'] = fatjet.msoftdrop
+            # deepBtags
+            varsToKeep['fj_btagDDBvL']        = fatjet.btagDDBvL
+            varsToKeep['fj_btagDDBvL_noMD']   = fatjet.btagDDBvL_noMD
+            varsToKeep['fj_btagDDCvB']        = fatjet.btagDDCvB
+            varsToKeep['fj_btagDDCvB_noMD']   = fatjet.btagDDCvB_noMD
+            varsToKeep['fj_btagDDCvL']        = fatjet.btagDDCvL
+            varsToKeep['fj_btagDDCvL_noMD']   = fatjet.btagDDCvL_noMD
+            varsToKeep['fj_btagDeepB']        = fatjet.btagDeepB
+            
+            varsToKeep['cosThetaS_Hbb'] = self.HLL.comp_cosThetaS(fatjet.subJet1.p4, fatjet.subJet2.p4)
+            varsToKeep['mT_top_3particle']  = op.min(self.HLL.mT2(fatjet.subJet1.p4,lepton.p4,MET.p4), self.HLL.mT2(fatjet.subJet2.p4,lepton.p4,MET.p4))
 
             if self.args.SemiBoostedHbbWtoJ or self.args.SemiBoostedHbbWtoJJ:
                 varsToKeep['fj_j2DR']   = op.deltaR(fatjet.p4, jet2.p4)
@@ -504,7 +522,7 @@ class SkimmerNanoHHtobbWWSL(BaseNanoHHtobbWW,SkimmerModule):
                     varsToKeep['HT2R'] = self.HLL.HT2R_l3jmet(lepton,fatjet.subJet1,fatjet.subJet2,jet2,MET)
                     varsToKeep['MT_W1W2'] = self.HLL.MT_W1W2_lj(lepton,jet2,MET)
 
-                elif self.args.SemiBoostedHbbWtoJJ:
+                if self.args.SemiBoostedHbbWtoJJ:
                     varsToKeep['Wtoj2j3_pt'] = (jet2.p4+jet3.p4).Pt()
                     varsToKeep['fj_j3DR']    = op.deltaR(fatjet.p4, jet3.p4)
                     varsToKeep['fj_j3DPhi']  = op.abs(op.deltaPhi(fatjet.p4, jet3.p4))
@@ -524,7 +542,13 @@ class SkimmerNanoHHtobbWWSL(BaseNanoHHtobbWW,SkimmerModule):
                     varsToKeep['HT2'] = self.HLL.HT2_l4jmet(lepton,fatjet.subJet1,fatjet.subJet2,jet2,jet3,MET)
                     varsToKeep['HT2R'] = self.HLL.HT2R_l4jmet(lepton,fatjet.subJet1,fatjet.subJet2,jet2,jet3,MET)
                     varsToKeep['MT_W1W2'] = self.HLL.MT_W1W2_ljj(lepton,jet2,jet3,MET)
-
+                    varsToKeep['HWW_Mass'] = self.HLL.HWW_simple(jet2.p4,jet3.p4,lepton.p4,MET).M()
+                    varsToKeep['HWW_Simple_Mass'] = self.HLL.HWW_met_simple(jet2.p4,jet3.p4,lepton.p4,MET.p4).M()
+                    varsToKeep['HWW_dR'] = self.HLL.dR_Hww(jet2.p4,jet3.p4,lepton.p4,MET)
+                    varsToKeep['cosThetaS_Wjj_simple'] = self.HLL.comp_cosThetaS(jet2.p4, jet3.p4)
+                    varsToKeep['cosThetaS_WW_simple_met'] = self.HLL.comp_cosThetaS(self.HLL.Wjj_simple(jet2.p4,jet3.p4), self.HLL.Wlep_met_simple(lepton.p4, MET.p4))
+                    varsToKeep['cosThetaS_HH_simple_met'] = self.HLL.comp_cosThetaS(fatjet.subJet1.p4+fatjet.subJet2.p4, self.HLL.HWW_met_simple(jet2.p4,jet3.p4,lepton.p4,MET.p4))
+                    
         #----- Additional variables -----#
         varsToKeep["MC_weight"] = t.genWeight
         varsToKeep['total_weight'] = selObj.sel.weight
