@@ -315,7 +315,7 @@ class SkimmerNanoHHtobbWWSL(BaseNanoHHtobbWW,SkimmerModule):
             elif self.args.Channel == "Mu": lepton = self.leadMuonTightSel[0]
         if self.args.FakeExtrapolation:
             if self.args.Channel == "El": lepton = self.leadElectronFakeExtrapolationSel[0]
-            elif self.args.Channel == "Mu": lepton = self.leadMuononFakeExtrapolationSel[0]
+            elif self.args.Channel == "Mu": lepton = self.leadMuonFakeExtrapolationSel[0]
 
         varsToKeep['lep_Px']  = lepton.p4.Px()
         varsToKeep['lep_Py']  = lepton.p4.Py()

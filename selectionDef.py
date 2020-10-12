@@ -103,10 +103,10 @@ def makeSingleLeptonSelection(self,baseSel,plot_yield=False,use_dd=True):
         ElTightSF = lambda lepColl : self.lambda_ElectronTightSF(lepColl[0])
         MuTightSF = lambda lepColl : self.lambda_MuonTightSF(lepColl[0])
     else:
-        ElLooseSF = lambda lepColl : None
-        MuLooseSF = lambda lepColl : None
-        ElTightSF = lambda lepColl : None
-        MuTightSF = lambda lepColl : None
+        ElLooseSF = lambda lepColl : []
+        MuLooseSF = lambda lepColl : []
+        ElTightSF = lambda lepColl : []
+        MuTightSF = lambda lepColl : []
 
     
     #--- Preselection ---#
@@ -454,7 +454,7 @@ def makeInclusiveBoostedSelection(self,selObject,copy_sel=False,plot_yield=False
         return selObject
 
 
-
+'''
 def applyBDTforWhadTagger(self, lepton, jets, bjets, lightJets, model_even, model_odd, event):
     
     inVars = [ lightJets[0].p4.Pt(),
@@ -471,7 +471,7 @@ def applyBDTforWhadTagger(self, lepton, jets, bjets, lightJets, model_even, mode
 
     output = op.switch(event%2,model_odd(*inVars),model_even(*inVars))
     return output[0]
-
+'''
 ################################################################################################################
 #                                                       DL                                                     #                       
 ################################################################################################################
@@ -533,13 +533,13 @@ def makeDoubleLeptonSelection(self,baseSel,plot_yield=False,use_dd=True):
         MuMuTightSF = lambda dilep : self.lambda_MuonTightSF(dilep[0]) + self.lambda_MuonTightSF(dilep[1])
         ElMuTightSF = lambda dilep : self.lambda_ElectronTightSF(dilep[0]) + self.lambda_MuonTightSF(dilep[1])
     else:
-        ElElLooseSF = lambda dilep : None
-        MuMuLooseSF = lambda dilep : None
-        ElMuLooseSF = lambda dilep : None
+        ElElLooseSF = lambda dilep : []
+        MuMuLooseSF = lambda dilep : []
+        ElMuLooseSF = lambda dilep : []
 
-        ElElTightSF = lambda dilep : None
-        MuMuTightSF = lambda dilep : None
-        ElMuTightSF = lambda dilep : None
+        ElElTightSF = lambda dilep : []
+        MuMuTightSF = lambda dilep : []
+        ElMuTightSF = lambda dilep : []
 
 
         
@@ -954,3 +954,14 @@ def makeInclusiveBoostedSelection(self,selObject,copy_sel=False,plot_yield=False
         return selObject
     
 
+def makeDNNOutputNodesSelections(self,selObject,output,plot_yield=False):
+    selBaseObject = copy(selObject)
+    selObjDict = {}
+    maxIdx = op.rng_max_element_index(output)
+    for i,node in enumerate(self.nodes):
+        newSelObj = copy(selBaseObject)
+        newSelObj.selName += '%snode'%node
+        newSelObj.yieldTitle += " in %s node"%node 
+        newSelObj.refine(cut = [maxIdx == op.c_int(i)]) 
+        selObjDict[node] = newSelObj
+    return selObjDict

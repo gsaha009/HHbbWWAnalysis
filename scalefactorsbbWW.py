@@ -64,44 +64,23 @@ class ScaleFactorsbbWW:
                                 entry_key   = 'muon_tightMVA_2016',
                                 base_str    = "TTHSF_EGamma_SF2D_MuonTight2016.json")
         
-        # Btagging #
-            # https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation2016Legacy#Supported_Algorithms_and_Operati
-        instance.AddScaleFactorWithWorkingPoint(path_key    = 'POG_SF',
-                                                entry_key   = 'btag_2016',
-                                                base_key    = '{algo}_{wp}',
-                                                base_str    = "BTagging_{wp}_{flav}_{calib}_{algo}_2016.json",
-                                                format_dict = {'algo':["DeepCSV", "DeepJet"],'wp':["loose", "medium", "tight"],('flav', 'calib'):[("lightjets", "incl"), ("cjets", "comb"), ("bjets","comb")]})
-            # https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation2016Legacy#Subjet_b_tagging
-        instance.AddScaleFactorWithWorkingPoint(path_key    = 'POG_SF',
-                                                entry_key   = 'subjet_btag_2016',
-                                                base_key    = '{algo}_{wp}',
-                                                base_str    = "BTagging_{wp}_{flav}_{calib}_subjet_{algo}_2016.json",
-                                                format_dict = {'algo':["DeepCSV"],'wp':["loose", "medium"],('flav', 'calib'):[("lightjets", "incl"), ("cjets", "lt"), ("bjets","lt")]})
-        # Btagging  split #
-        instance.AddScaleFactorWithWorkingPoint(path_key    = 'POG_SF',
-                                                entry_key   = 'btag_lightjets_2016',
-                                                base_key    = '{algo}_{wp}',
-                                                base_str    = "BTagging_{wp}_lightjets_incl_{algo}_2016.json",
-                                                format_dict = {'algo':["DeepCSV", "DeepJet"],'wp':["loose", "medium", "tight"]})
-        instance.AddScaleFactorWithWorkingPoint(path_key    = 'POG_SF',
-                                                entry_key   = 'btag_cjets_2016',
-                                                base_key    = '{algo}_{wp}',
-                                                base_str    = "BTagging_{wp}_cjets_comb_{algo}_2016.json",
-                                                format_dict = {'algo':["DeepCSV", "DeepJet"],'wp':["loose", "medium", "tight"]})
-        instance.AddScaleFactorWithWorkingPoint(path_key    = 'POG_SF',
-                                                entry_key   = 'btag_bjets_2016',
-                                                base_key    = '{algo}_{wp}',
-                                                base_str    = "BTagging_{wp}_bjets_comb_{algo}_2016.json",
-                                                format_dict = {'algo':["DeepCSV", "DeepJet"],'wp':["loose", "medium", "tight"]})
 
         # DY weight for 1 and 2 btag # 
         instance.AddScaleFactorWithWorkingPoint(path_key    = 'DY_SF',
                                                 entry_key   = 'DY_2016',
-                                                base_key    = '{channel}_{type}_{btag}',
-                                                #base_str    = 'weight_firstLeptonPtVSLeadjetPt_{channel}_{type}_2D_weight_{btag}_2016.json',
-                                                #base_str    = 'weight_firstleptonPtVsEta_{channel}_{type}_2D_weight_{btag}_2016.json',
-                                                base_str    = 'weight_leadjetPt_{channel}_{type}_1D_weight_{btag}_2016.json',
-                                                format_dict = {'channel':['ElEl','MuMu'],'type':['data','mc'],'btag':['1b','2b']})
+                                                base_key    = '{channel}_{variable}_{type}_{btag}',
+                                                base_str    = 'weight_{variable}_{channel}_{type}_1D_weight_{btag}_2016.json',
+                                                format_dict = {'channel':['ElEl','MuMu'],'type':['data','mc'],'btag':['1b','2b'],
+                                                               'variable':['DNNoutputDY',
+                                                                           'DNNoutputH', 
+                                                                           'DNNoutputHH', 
+                                                                           'DNNoutputRare', 
+                                                                           'DNNoutputST', 
+                                                                           'DNNoutputTT', 
+                                                                           'DNNoutputTTVX', 
+                                                                           'DNNoutputVVV', 
+                                                                           'firstleptonPt',
+                                                                           'leadjetPt']})
 
         #  Fake rates #
         instance.AddScaleFactorWithWorkingPoint(path_key    = 'FR',
@@ -151,19 +130,7 @@ class ScaleFactorsbbWW:
         instance.AddScaleFactor(path_key    = 'ttH_SF',
                                 entry_key   = 'muon_tightMVA_2017',
                                 base_str    = "TTHSF_EGamma_SF2D_MuonTight2017.json")
-        # Btagging #
-            # https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation94X#Supported_Algorithms_and_Operati
-        instance.AddScaleFactorWithWorkingPoint(path_key    = 'POG_SF',
-                                                entry_key   = 'btag_2017',
-                                                base_key    = '{algo}_{wp}',
-                                                base_str    = "BTagging_{wp}_{flav}_{calib}_{algo}_2017.json",
-                                                format_dict = {'algo':["DeepCSV", "DeepJet"],'wp':["loose", "medium", "tight"],('flav', 'calib'):[("lightjets", "incl"), ("cjets", "comb"), ("bjets","comb")]})
-            # https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation94X#Boosted_event_topologies
-        instance.AddScaleFactorWithWorkingPoint(path_key    = 'POG_SF',
-                                                entry_key   = 'subjet_btag_2017',
-                                                base_key    = '{algo}_{wp}',
-                                                base_str    = "BTagging_{wp}_{flav}_{calib}_subjet_{algo}_2017.json",
-                                                format_dict = {'algo':["DeepCSV"],'wp':["loose", "medium"],('flav', 'calib'):[("lightjets", "incl"), ("cjets", "lt"), ("bjets","lt")]})
+
         #  Fake rates #
         instance.AddScaleFactorWithWorkingPoint(path_key    = 'FR',
                                                 entry_key   = 'electron_fakerates_2017',
@@ -211,19 +178,6 @@ class ScaleFactorsbbWW:
         instance.AddScaleFactor(path_key    = 'ttH_SF',
                                 entry_key   = 'muon_tightMVA_2018',
                                 base_str    = "TTHSF_EGamma_SF2D_MuonTight2018.json")
-        # Btagging #
-            # https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation102X
-        instance.AddScaleFactorWithWorkingPoint(path_key    = 'POG_SF',
-                                                entry_key   = 'btag_2018',
-                                                base_key    = '{algo}_{wp}',
-                                                base_str    = "BTagging_{wp}_{flav}_{calib}_{algo}_2018.json",
-                                                format_dict = {'algo':["DeepCSV", "DeepJet"],'wp':["loose", "medium", "tight"],('flav', 'calib'):[("lightjets", "incl"), ("cjets", "comb"), ("bjets","comb")]})
-            # https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation102X#Boosted_event_topologies
-        instance.AddScaleFactorWithWorkingPoint(path_key    = 'POG_SF',
-                                                entry_key   = 'subjet_btag_2018',
-                                                base_key    = '{algo}_{wp}',
-                                                base_str    = "BTagging_{wp}_{flav}_{calib}_subjet_{algo}_2018.json",
-                                                format_dict = {'algo':["DeepCSV"],'wp':["loose", "medium"],('flav', 'calib'):[("lightjets", "incl"), ("cjets", "lt"), ("bjets","lt")]})
 
         #  Fake rates #
         instance.AddScaleFactorWithWorkingPoint(path_key    = 'FR',
