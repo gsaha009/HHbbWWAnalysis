@@ -15,7 +15,7 @@ class highlevelLambdas:
         
 
         # bReg corr 4 momenta of ak4-bTagged jet #
-        self.bJetCorrP4 = lambda j : op._to.Construct("ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<float> >", (j.pt*j.bRegCorr, j.eta, j.phi, j.mass)).result
+        self.bJetCorrP4 = lambda j : op._to.Construct("ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<float> >", (j.pt*j.bRegCorr, j.eta, j.phi, j.mass*j.bRegCorr)).result
         
         # Dilep-Met variables #
         self.DilepMET_deltaPhi = lambda l1,l2,met : self.ll_p4(l1,l2).Phi()-met.phi
@@ -37,12 +37,17 @@ class highlevelLambdas:
         self.MinDR_lj = lambda l1,l2,j1,j2 : op.min(op.min(op.deltaR(l1.p4,j1.p4),op.deltaR(l1.p4,j2.p4)),
                                                op.min(op.deltaR(l2.p4,j1.p4),op.deltaR(l2.p4,j2.p4)))
         
+        self.MinDR_lep2j = lambda lep,j1,j2 : op.min(op.deltaR(lep.p4,j1.p4),op.deltaR(lep.p4,j2.p4))
         self.MinDR_lep3j = lambda lep,j1,j2,j3 : op.min(op.min(op.deltaR(lep.p4,j1.p4),op.deltaR(lep.p4,j2.p4)),op.deltaR(lep.p4,j3.p4))
         self.MinDR_lep4j = lambda lep,j1,j2,j3,j4 : op.min(op.min(op.min(op.deltaR(lep.p4,j1.p4),op.deltaR(lep.p4,j2.p4)),op.deltaR(lep.p4,j3.p4)),op.deltaR(lep.p4,j4.p4))
 
         # Higgs related variables #
         self.HT2 = lambda l1,l2,j1,j2,met : op.sqrt(op.pow(met.pt*op.cos(met.phi)+l1.p4.Px()+l2.p4.Px(),2)+op.pow(met.pt*op.sin(met.phi)+l1.p4.Py()+l2.p4.Py(),2)) + op.abs((j1.p4+j2.p4).Pt())
         self.HT2R = lambda l1,l2,j1,j2,met : self.HT2(met,l1,l2,j1,j2)/(met.pt+l1.p4.Pt()+l2.p4.Pt()+j1.p4.Pt()+j2.p4.Pt())
+        self.HT2_l1jmet  = lambda l,j1,met : op.sqrt(op.pow(met.pt*op.cos(met.phi)+l.p4.Px(),2)+op.pow(met.pt*op.sin(met.phi)+l.p4.Py(),2)) + op.abs(j1.p4.Pt())
+        self.HT2R_l1jmet = lambda l,j1,met : self.HT2_l2jmet(met,l,j1)/(met.pt+l.p4.Pt()+j1.p4.Pt())
+        self.HT2_l2jmet  = lambda l,j1,j2,met : op.sqrt(op.pow(met.pt*op.cos(met.phi)+l.p4.Px(),2)+op.pow(met.pt*op.sin(met.phi)+l.p4.Py(),2)) + op.abs((j1.p4+j2.p4).Pt())
+        self.HT2R_l2jmet = lambda l,j1,j2,met : self.HT2_l2jmet(met,l,j1,j2)/(met.pt+l.p4.Pt()+j1.p4.Pt()+j2.p4.Pt())
         self.HT2_l3jmet  = lambda l,j1,j2,j3,met : op.sqrt(op.pow(met.pt*op.cos(met.phi)+l.p4.Px(),2)+op.pow(met.pt*op.sin(met.phi)+l.p4.Py(),2)) + op.abs((j1.p4+j2.p4+j3.p4).Pt())
         self.HT2R_l3jmet = lambda l,j1,j2,j3,met : self.HT2_l3jmet(met,l,j1,j2,j3)/(met.pt+l.p4.Pt()+j1.p4.Pt()+j2.p4.Pt()+j3.p4.Pt())
         self.HT2_l4jmet  = lambda l,j1,j2,j3,j4,met : op.sqrt(op.pow(met.pt*op.cos(met.phi)+l.p4.Px(),2)+op.pow(met.pt*op.sin(met.phi)+l.p4.Py(),2)) + op.abs((j1.p4+j2.p4+j3.p4+j4.p4).Pt())
@@ -88,11 +93,13 @@ class highlevelLambdas:
                                                           op.sqrt(op.pow(met.p4.Px(),2)+op.pow(met.p4.Py(),2)+op.pow(neuPz(visP4, met),2)))).result
         
         # P4 of W1 (l,neu)
-        self.Wlep_simple = lambda j1P4,j2P4,lepP4,met : lepP4 + neuP4(j1P4+j2P4+lepP4, met)
+        self.Wlep_simple = lambda wj1P4,wj2P4,lepP4,met : lepP4 + neuP4(wj1P4+wj2P4+lepP4, met)
         # P4 of W2 (j,j)
         self.Wjj_simple  = lambda j1P4,j2P4 : j1P4 + j2P4 
+        # DR_HadW_bJet
+        self.dR_HadW_bjet = lambda bP4,j1P4,j2P4 : op.deltaR(self.Wjj_simple(j1P4,j2P4), bP4)
         # P4 of HWW (W1 + W2)
-        self.HWW_simple  = lambda j1P4,j2P4,lepP4,met : self.Wjj_simple(j1P4,j2P4) + self.Wlep_simple(j1P4,j2P4,lepP4,met)
+        self.HWW_simple  = lambda wj1P4,wj2P4,lepP4,met : self.Wjj_simple(wj1P4,wj2P4) + self.Wlep_simple(wj1P4,wj2P4,lepP4,met)
         # dR_HWW
         self.dR_Hww   = lambda j1P4,j2P4,lepP4,met : op.deltaR(self.Wjj_simple(j1P4,j2P4), self.Wlep_simple(j1P4,j2P4,lepP4,met))
         # P4 of lep + met
@@ -144,6 +151,11 @@ class highlevelLambdas:
         lepSumPy = lambda leps : op.rng_sum(leps, lambda l : l.p4.Py())
         self.MET_LD = lambda met, jets, leps : 0.6*met.pt + 0.4*op.sqrt(op.pow(jetSumPx(jets)+lepSumPx(leps),2)+op.pow(jetSumPy(jets)+lepSumPy(leps),2)) 
         
+        empty_p4 = op.construct("ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<float> >",([op.c_float(0.),op.c_float(0.),op.c_float(0.),op.c_float(0.)]))
+        self.MET_LD_DL = lambda met, jets, electrons, muons : 0.6 * met.pt +\
+                    0.4* (op.rng_sum(jets, (lambda j : j.p4), start=empty_p4) + op.rng_sum(electrons, (lambda e : e.p4), start=empty_p4) + op.rng_sum(muons, (lambda m : m.p4), start=empty_p4)).Pt()
+
+
         # conept
         self.lambdaConePt = lambda lep : op.switch(op.abs(lep.pdgId) == 13, HHself.muon_conept[lep.idx], HHself.electron_conept[lep.idx])
        

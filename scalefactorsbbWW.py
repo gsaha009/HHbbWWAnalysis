@@ -64,23 +64,23 @@ class ScaleFactorsbbWW:
                                 entry_key   = 'muon_tightMVA_2016',
                                 base_str    = "TTHSF_EGamma_SF2D_MuonTight2016.json")
         
-
+        '''
         # DY weight for 1 and 2 btag # 
         instance.AddScaleFactorWithWorkingPoint(path_key    = 'DY_SF',
                                                 entry_key   = 'DY_2016',
                                                 base_key    = '{channel}_{variable}_{type}_{btag}',
                                                 base_str    = 'weight_{variable}_{channel}_{type}_1D_weight_{btag}_2016.json',
-                                                format_dict = {'channel':['ElEl','MuMu'],'type':['data','mc'],'btag':['1b','2b'],
-                                                               'variable':['DNNoutputDY',
-                                                                           'DNNoutputH', 
-                                                                           'DNNoutputHH', 
-                                                                           'DNNoutputRare', 
-                                                                           'DNNoutputST', 
-                                                                           'DNNoutputTT', 
-                                                                           'DNNoutputTTVX', 
-                                                                           'DNNoutputVVV', 
-                                                                           'firstleptonPt',
-                                                                           'leadjetPt']})
+                                                format_dict = {'channel':['ElEl','MuMu','SSDL'],'type':['data','mc'],'btag':['1b','2b'],'variable':['leadjetPt','fatjetsoftDropmass']})
+        '''
+        # DY weight for 1 and 2 btag # 
+        instance.AddScaleFactorWithWorkingPoint(path_key    = 'DY_SF',
+                                                entry_key   = 'DY_2016',
+                                                base_key    = '{channel}_{type}_{btag}',
+                                                #base_str    = 'weight_firstLeptonPtVSLeadjetPt_{channel}_{type}_2D_weight_{btag}_2016.json',
+                                                #base_str    = 'weight_firstleptonPtVsEta_{channel}_{type}_2D_weight_{btag}_2016.json',
+                                                base_str    = 'weight_leadjetPt_{channel}_{type}_1D_weight_{btag}_2016.json',
+                                                format_dict = {'channel':['ElEl','MuMu'],'type':['data','mc'],'btag':['1b','2b']})
+
 
         #  Fake rates #
         instance.AddScaleFactorWithWorkingPoint(path_key    = 'FR',
@@ -93,6 +93,20 @@ class ScaleFactorsbbWW:
                                                 base_key    = '{syst}_syst',
                                                 base_str    = 'TTHFakeRates_Muon_2016_{syst}Syst.json',
                                                 format_dict = {'syst':['pt','barrel','norm']})
+
+        # PU ID SF #
+        instance.AddScaleFactorWithWorkingPoint(path_key    = 'Btag_SF',
+                                                entry_key   = 'jet_puid',
+                                                base_key    = '{eom}_{mcsf}_{era}_{wp}',
+                                                base_str    = 'PUID_80X_{eom}_{mcsf}_{era}_{wp}.json',
+                                                format_dict = {'eom':["eff", "mistag"],'mcsf':["mc", "sf"],'wp':['L','M','T'],'era':['2016','2017','2018']})
+                                                
+        # Ak8 efficiency btagging #
+        instance.AddScaleFactorWithWorkingPoint(path_key    = 'Btag_SF',
+                                                entry_key   = 'ak8btag_eff_2016',
+                                                base_key    = 'eff_{flav}',
+                                                base_str    = 'BtagAk8_{flav}_2016.json',
+                                                format_dict = {'flav':['bjets','cjets','lightjets']})
 
         #----- 2017 -----#
         # Check links of 2016 #
