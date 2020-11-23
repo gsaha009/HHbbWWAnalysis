@@ -1220,6 +1220,46 @@ One lepton and and one jet argument must be specified in addition to the require
         self.lambda_btaggedSubJets = lambda fjet : op.switch(self.lambda_ak8Btag_bothSubJets(fjet), op.c_float(2.0), op.c_float(1.0))
         self.nMediumBTaggedSubJets = op.rng_sum(self.ak8BJets, self.lambda_btaggedSubJets)
 
+
+        #############################################################################
+        #                                VBF Jets                                   #
+        #############################################################################
+        self.lambda_VBFJets = lambda j : op.AND(j.jetId & 1 if era == "2016" else j.jetId & 2, # Jet ID flags bit1 is loose, bit2 is tight, bit3 is tightLepVeto
+                                                j.pt >= 25.,
+                                                op.abs(j.eta) <= 4.7,
+                                                op.OR(j.pt >= 60., op.AND(op.abs(j.eta) < 2.7, op.abs(j.eta) > 3.0)))
+        self.VBFJetsPreSel = op.select(self.ak4JetsByPt, self.lambda_VBFJets)
+        '''
+        if self.args.POGID:
+            self.lambda_cleanVBFLeptons = lambda j : op.AND(op.NOT(op.rng_any(self.electronsTightSel, lambda ele : op.deltaR(j.p4, ele.p4) <= 0.4 )), 
+                                                            op.NOT(op.rng_any(self.muonsTightSel, lambda mu : op.deltaR(j.p4, mu.p4) <= 0.4 )))
+        '''
+        #elif self.args.TTHIDLoose or self.args.TTHIDFakeable:
+        self.lambda_cleanVBFLeptons = lambda j : op.AND(op.NOT(op.rng_any(self.electronsFakeSel, lambda ele : op.deltaR(j.p4, ele.p4) <= 0.4 )), 
+                                                        op.NOT(op.rng_any(self.muonsFakeSel, lambda mu : op.deltaR(j.p4, mu.p4) <= 0.4 )))
+
+        if channel == "DL":
+            self.lambda_cleanVBFAk4 = lambda j : op.AND(op.NOT(op.rng_any(self.ak4JetsByBtagScore[:2], lambda ak4Jet : op.deltaR(j.p4, ak4Jet.p4) <= 0.8 )))
+            self.lambda_cleanVBFAk8 = lambda j : op.AND(op.NOT(op.rng_any(self.ak8Jets, lambda ak8Jet : op.deltaR(j.p4, ak8Jet.p4) <= 1.2 )))
+        if channel == "SL":
+            #raise NotImplementedError
+            self.lambda_cleanVBFAk4 = lambda j, jpa_bJetColl : op.NOT(op.rng_any(jpa_bJetColl, lambda jpajet : op.deltaR(jpajet.p4, j.p4) <= 0.8)) 
+            self.lambda_cleanVBFAk8 = lambda j, jpa_bJetColl, jpa_wJetColl : op.AND(op.NOT(op.rng_any(jpa_bJetColl, lambda jet : op.deltaR(jet.p4, j.p4) <= 0.8)),
+                                                                                    op.NOT(op.rng_any(jpa_wJetColl, lambda jet : op.deltaR(jet.p4, j.p4) <= 0.8)))
+
+        
+        self.VBFJets = op.select(self.VBFJetsPreSel, self.lambda_cleanVBFLeptons)
+        #self.VBFJetsResolved = op.select(self.VBFJets, self.lambda_cleanVBFAk4)
+        #self.VBFJetsBoosted  = op.select(self.VBFJets, self.lambda_cleanVBFAk8)
+
+        self.lambda_VBFPair = lambda j1,j2 : op.AND(op.invariant_mass(j1.p4,j2.p4) > 500.,
+                                                    op.abs(j1.eta - j2.eta) > 3.)
+
+        #self.VBFJetPairsResolved = op.sort(op.combine(self.VBFJetsResolved, N=2, pred=self.lambda_VBFPair), lambda dijet : -op.invariant_mass(dijet[0].p4,dijet[1].p4))
+        #self.VBFJetPairsBoosted  = op.sort(op.combine(self.VBFJetsBoosted,  N=2, pred=self.lambda_VBFPair), lambda dijet : -op.invariant_mass(dijet[0].p4,dijet[1].p4))
+
+
+
         #############################################################################
         #                               Triggers                                    #
         #############################################################################

@@ -152,7 +152,7 @@ class SkimmerNanoHHtobbWWSL(BaseNanoHHtobbWW,SkimmerModule):
             #----- Jet selection -----#
             # Since the selections in one line, we can use the non copy option of the selection to modify the selection object internally
             if any([self.args.__dict__[item] for item in ["Ak4","Res2b2Wj","Res2b1Wj","Res2b0Wj","Res1b2Wj","Res1b1Wj","Res1b0Wj","Res0b"]]):
-                makeResolvedSelection(self,selObj)
+                selObj = makeResolvedSelection(self,selObj,copy_sel=True)
                 if self.args.Channel == "El":
                     print('... Resolved :: El Channel')
                     L1out,L2out,selObjAndJetsPerJpaCatDict = findJPACategoryResolved (self, selObj, self.leadElectronTightSel[0], 
@@ -183,7 +183,7 @@ class SkimmerNanoHHtobbWWSL(BaseNanoHHtobbWW,SkimmerModule):
                     Res1b0Wjets = selObjAndJetsPerJpaCatDict.get('1b0Wj')[1]
                     
             if any([self.args.__dict__[item] for item in ["Ak8","Hbb2Wj","Hbb1Wj","Hbb0Wj"]]):
-                makeBoostedSelection(self,selObj)
+                selObj = makeBoostedSelection(self,selObj,copy_sel=True)
                 if self.args.Channel == "El":
                     print('... Boosted :: El Channel')
                     L1out,L2out,selObjAndJetsPerJpaCatDict = findJPACategoryBoosted (self, selObj, self.leadElectronTightSel[0], 
@@ -207,34 +207,34 @@ class SkimmerNanoHHtobbWWSL(BaseNanoHHtobbWW,SkimmerModule):
                     
             if self.args.Res2b2Wj:
                 print("...... 2b2Wj")
-                selObjAndJetsPerJpaCatDict.get('2b2Wj')[0]
+                selObj = selObjAndJetsPerJpaCatDict.get('2b2Wj')[0]
             if self.args.Res2b1Wj:
                 print("...... 2b1Wj")
-                selObjAndJetsPerJpaCatDict.get('2b1Wj')[0]
+                selObj = selObjAndJetsPerJpaCatDict.get('2b1Wj')[0]
             if self.args.Res2b0Wj:
                 print("...... 2b0Wj")
-                selObjAndJetsPerJpaCatDict.get('2b0Wj')[0]
+                selObj = selObjAndJetsPerJpaCatDict.get('2b0Wj')[0]
             if self.args.Res1b2Wj:
                 print("...... 1b2Wj")
-                selObjAndJetsPerJpaCatDict.get('1b2Wj')[0]
+                selObj = selObjAndJetsPerJpaCatDict.get('1b2Wj')[0]
             if self.args.Res1b1Wj:
                 print("...... 1b1Wj")
-                selObjAndJetsPerJpaCatDict.get('1b1Wj')[0]
+                selObj = selObjAndJetsPerJpaCatDict.get('1b1Wj')[0]
             if self.args.Res1b0Wj:
                 print("...... 1b0Wj")
-                selObjAndJetsPerJpaCatDict.get('1b0Wj')[0]
+                selObj = selObjAndJetsPerJpaCatDict.get('1b0Wj')[0]
             if self.args.Res0b:
                 print("...... 0b")
-                selObjAndJetsPerJpaCatDict.get('0b')[0]
+                selObj = selObjAndJetsPerJpaCatDict.get('0b')[0]
             if self.args.Hbb2Wj:
                 print("...... Hbb2Wj")
-                selObjAndJetsPerJpaCatDict.get('Hbb2Wj')[0]
+                selObj = selObjAndJetsPerJpaCatDict.get('Hbb2Wj')[0]
             if self.args.Hbb1Wj:
                 print("...... Hbb1Wj")
-                selObjAndJetsPerJpaCatDict.get('Hbb1Wj')[0]
+                selObj = selObjAndJetsPerJpaCatDict.get('Hbb1Wj')[0]
             if self.args.Hbb0Wj:
                 print("...... Hbb0Wj")
-                selObjAndJetsPerJpaCatDict.get('Hbb0Wj')[0]
+                selObj = selObjAndJetsPerJpaCatDict.get('Hbb0Wj')[0]
 
             
         #---------------------------------------------------------------------------------------# 
@@ -340,22 +340,56 @@ class SkimmerNanoHHtobbWWSL(BaseNanoHHtobbWW,SkimmerModule):
                 #varsToKeep["mu{}_looseSF".format(i)]               = op.switch(op.rng_len(self.muonsPreSel) >= i, reduce(mul,self.lambda_MuonLooseSF(self.muonsPreSel[i-1])), op.c_int(-9999))
                 #varsToKeep["mu{}_tightSF".format(i)]               = op.switch(op.rng_len(self.muonsPreSel) >= i, reduce(mul,self.lambda_MuonTightSF(self.muonsPreSel[i-1])), op.c_int(-9999))
             
-            for i in range(1,4):
-                varsToKeep["tightEl{}_pt".format(i)]   = op.switch(op.rng_len(self.electronsTightSel) >= i, self.electronsTightSel[i-1].pt, op.c_float(-9999.))
-                varsToKeep["tightMu{}_pt".format(i)]   = op.switch(op.rng_len(self.muonsTightSel) >= i, self.muonsTightSel[i-1].pt, op.c_float(-9999.))
+            for i in range(1,6):
+                varsToKeep["tightEl{}_pt".format(i)]   = op.switch(op.rng_len(self.electronsTightSel) >= i, self.electronsTightSel[i-1].pt, op.static_cast("Float_t", op.c_float(-9999.)))
+                varsToKeep["tightMu{}_pt".format(i)]   = op.switch(op.rng_len(self.muonsTightSel) >= i, self.muonsTightSel[i-1].pt, op.static_cast("Float_t", op.c_float(-9999.)))
                 
                 varsToKeep["dR_tau1_mu_{}".format(i)]   = op.switch(op.AND(op.rng_len(self.muonsFakeSel) >= i, op.rng_len(self.tauSel) >= 1), 
                                                                     op.deltaR(self.tauSel[0].p4, self.muonsFakeSel[i-1].p4),
-                                                                    op.c_float(-9999.))
+                                                                    op.static_cast("Float_t", op.c_float(-9999.)))
                 varsToKeep["dR_tau2_mu_{}".format(i)]   = op.switch(op.AND(op.rng_len(self.muonsFakeSel) >= i, op.rng_len(self.tauSel) >= 2), 
                                                                     op.deltaR(self.tauSel[1].p4, self.muonsFakeSel[i-1].p4),
-                                                                    op.c_float(-9999.))
+                                                                    op.static_cast("Float_t", op.c_float(-9999.)))
                 varsToKeep["dR_tau1_el_{}".format(i)]   = op.switch(op.AND(op.rng_len(self.electronsFakeSel) >= i, op.rng_len(self.tauSel) >= 1), 
                                                                     op.deltaR(self.tauSel[0].p4, self.electronsFakeSel[i-1].p4),
-                                                                    op.c_float(-9999.))
+                                                                    op.static_cast("Float_t", op.c_float(-9999.)))
                 varsToKeep["dR_tau2_el_{}".format(i)]   = op.switch(op.AND(op.rng_len(self.electronsFakeSel) >= i, op.rng_len(self.tauSel) >= 2), 
                                                                     op.deltaR(self.tauSel[1].p4, self.electronsFakeSel[i-1].p4),
-                                                                    op.c_float(-9999.))
+                                                                    op.static_cast("Float_t", op.c_float(-9999.)))
+
+                varsToKeep["fakeableEl_{}_pt".format(i)] = op.switch(op.rng_len(self.electronsFakeSel) >= i, self.electronsFakeSel[i-1].pt, op.static_cast("Float_t", op.c_float(-9999.)))
+                varsToKeep["fakeableEl_{}_eta".format(i)] = op.switch(op.rng_len(self.electronsFakeSel) >= i, self.electronsFakeSel[i-1].eta, op.static_cast("Float_t", op.c_float(-9999.)))
+                varsToKeep["fakeableEl_{}_phi".format(i)] = op.switch(op.rng_len(self.electronsFakeSel) >= i, self.electronsFakeSel[i-1].phi, op.static_cast("Float_t", op.c_float(-9999.)))
+                varsToKeep["fakeableEl_{}_isPrompt".format(i)]  = op.switch(op.rng_len(self.electronsFakeSel) >= i, 
+                                                                            op.switch(self.lambda_is_matched(self.electronsFakeSel[i-1]), op.c_int(1), op.c_int(0)), op.c_int(-9999))
+                varsToKeep["fakeableEl_{}_mvaTTH".format(i)] = op.switch(op.rng_len(self.electronsFakeSel) >= i, self.electronsFakeSel[i-1].mvaTTH, op.static_cast("Float_t", op.c_float(-9999.)))
+
+
+                varsToKeep["fakeableMu_{}_pt".format(i)] = op.switch(op.rng_len(self.muonsFakeSel) >= i, self.muonsFakeSel[i-1].pt, op.static_cast("Float_t", op.c_float(-9999.)))
+                varsToKeep["fakeableMu_{}_eta".format(i)] = op.switch(op.rng_len(self.muonsFakeSel) >= i, self.muonsFakeSel[i-1].eta, op.static_cast("Float_t", op.c_float(-9999.)))
+                varsToKeep["fakeableMu_{}_phi".format(i)] = op.switch(op.rng_len(self.muonsFakeSel) >= i, self.muonsFakeSel[i-1].phi, op.static_cast("Float_t", op.c_float(-9999.)))
+                varsToKeep["fakeableMu_{}_isPrompt".format(i)]  = op.switch(op.rng_len(self.muonsFakeSel) >= i, 
+                                                                            op.switch(self.lambda_is_matched(self.muonsFakeSel[i-1]), op.c_int(1), op.c_int(0)), op.c_int(-9999))
+                varsToKeep["fakeableMu_{}_mvaTTH".format(i)] = op.switch(op.rng_len(self.muonsFakeSel) >= i, self.muonsFakeSel[i-1].mvaTTH, op.static_cast("Float_t", op.c_float(-9999.)))
+
+                
+                varsToKeep["tauVetoCand_{}_pt".format(i)] = op.switch(op.rng_len(self.tauCleanSel) >= i, self.tauCleanSel[i-1].pt, op.static_cast("Float_t", op.c_float(-9999.)))
+                varsToKeep["tauVetoCand_{}_eta".format(i)] = op.switch(op.rng_len(self.tauCleanSel) >= i, self.tauCleanSel[i-1].eta, op.static_cast("Float_t", op.c_float(-9999.)))
+                varsToKeep["tauVetoCand_{}_phi".format(i)] = op.switch(op.rng_len(self.tauCleanSel) >= i, self.tauCleanSel[i-1].phi, op.static_cast("Float_t", op.c_float(-9999.)))
+                
+                varsToKeep["dR_clnTau1_mu_{}".format(i)]   = op.switch(op.AND(op.rng_len(self.muonsFakeSel) >= i, op.rng_len(self.tauCleanSel) >= 1), 
+                                                                       op.deltaR(self.tauCleanSel[0].p4, self.muonsFakeSel[i-1].p4),
+                                                                       op.static_cast("Float_t", op.c_float(-9999.)))
+                varsToKeep["dR_clnTau2_mu_{}".format(i)]   = op.switch(op.AND(op.rng_len(self.muonsFakeSel) >= i, op.rng_len(self.tauCleanSel) >= 2), 
+                                                                       op.deltaR(self.tauCleanSel[1].p4, self.muonsFakeSel[i-1].p4),
+                                                                       op.static_cast("Float_t", op.c_float(-9999.)))
+                varsToKeep["dR_clnTau1_el_{}".format(i)]   = op.switch(op.AND(op.rng_len(self.electronsFakeSel) >= i, op.rng_len(self.tauCleanSel) >= 1), 
+                                                                       op.deltaR(self.tauCleanSel[0].p4, self.electronsFakeSel[i-1].p4),
+                                                                       op.static_cast("Float_t", op.c_float(-9999.)))
+                varsToKeep["dR_clnTau2_el_{}".format(i)]   = op.switch(op.AND(op.rng_len(self.electronsFakeSel) >= i, op.rng_len(self.tauCleanSel) >= 2), 
+                                                                       op.deltaR(self.tauCleanSel[1].p4, self.electronsFakeSel[i-1].p4),
+                                                                       op.static_cast("Float_t", op.c_float(-9999.)))
+                
 
             # Electrons #
             for i in range(1,3): # 2 leading electrons 
@@ -409,21 +443,26 @@ class SkimmerNanoHHtobbWWSL(BaseNanoHHtobbWW,SkimmerModule):
 
             # AK8 Jets #
             for i in range(1,3): # 2 leading fatjets 
-                varsToKeep["ak8Jet{}_pt".format(i)]                 = op.switch(op.rng_len(self.ak8BJets) >= i, self.ak8BJets[i-1].pt, op.c_float(-9999.))
-                varsToKeep["ak8Jet{}_eta".format(i)]                = op.switch(op.rng_len(self.ak8BJets) >= i, self.ak8BJets[i-1].eta, op.c_float(-9999.))
-                varsToKeep["ak8Jet{}_phi".format(i)]                = op.switch(op.rng_len(self.ak8BJets) >= i, self.ak8BJets[i-1].phi, op.c_float(-9999.))
-                varsToKeep["ak8Jet{}_E".format(i)]                  = op.switch(op.rng_len(self.ak8BJets) >= i, self.ak8BJets[i-1].p4.E(), op.c_float(-9999., "float"))
-                varsToKeep["ak8Jet{}_msoftdrop".format(i)]          = op.switch(op.rng_len(self.ak8BJets) >= i, self.ak8BJets[i-1].msoftdrop, op.c_float(-9999.))
-                varsToKeep["ak8Jet{}_tau1".format(i)]               = op.switch(op.rng_len(self.ak8BJets) >= i, self.ak8BJets[i-1].tau1, op.c_float(-9999.))
-                varsToKeep["ak8Jet{}_tau2".format(i)]               = op.switch(op.rng_len(self.ak8BJets) >= i, self.ak8BJets[i-1].tau2, op.c_float(-9999.))
-                varsToKeep["ak8Jet{}_subjet0_pt".format(i)]         = op.switch(op.rng_len(self.ak8BJets) >= i, self.ak8BJets[i-1].subJet1.pt, op.c_float(-9999.))
-                varsToKeep["ak8Jet{}_subjet0_eta".format(i)]        = op.switch(op.rng_len(self.ak8BJets) >= i, self.ak8BJets[i-1].subJet1.eta, op.c_float(-9999.))
-                varsToKeep["ak8Jet{}_subjet0_phi".format(i)]        = op.switch(op.rng_len(self.ak8BJets) >= i, self.ak8BJets[i-1].subJet1.phi, op.c_float(-9999.))
-                varsToKeep["ak8Jet{}_subjet0_CSV".format(i)]        = op.switch(op.rng_len(self.ak8BJets) >= i, self.ak8BJets[i-1].subJet1.btagDeepB, op.c_float(-9999.))
-                varsToKeep["ak8Jet{}_subjet1_pt".format(i)]         = op.switch(op.rng_len(self.ak8BJets) >= i, self.ak8BJets[i-1].subJet2.pt, op.c_float(-9999.))
-                varsToKeep["ak8Jet{}_subjet1_eta".format(i)]        = op.switch(op.rng_len(self.ak8BJets) >= i, self.ak8BJets[i-1].subJet2.eta, op.c_float(-9999.))
-                varsToKeep["ak8Jet{}_subjet1_phi".format(i)]        = op.switch(op.rng_len(self.ak8BJets) >= i, self.ak8BJets[i-1].subJet2.phi, op.c_float(-9999.))
-                varsToKeep["ak8Jet{}_subjet1_CSV".format(i)]        = op.switch(op.rng_len(self.ak8BJets) >= i, self.ak8BJets[i-1].subJet2.btagDeepB, op.c_float(-9999.))
+                varsToKeep["ak8Jet{}_pt".format(i)]                 = op.switch(op.rng_len(self.ak8Jets) >= i, self.ak8Jets[i-1].pt, op.c_float(-9999.))
+                varsToKeep["ak8Jet{}_eta".format(i)]                = op.switch(op.rng_len(self.ak8Jets) >= i, self.ak8Jets[i-1].eta, op.c_float(-9999.))
+                varsToKeep["ak8Jet{}_phi".format(i)]                = op.switch(op.rng_len(self.ak8Jets) >= i, self.ak8Jets[i-1].phi, op.c_float(-9999.))
+
+
+                varsToKeep["ak8bJet{}_pt".format(i)]                 = op.switch(op.rng_len(self.ak8BJets) >= i, self.ak8BJets[i-1].pt, op.c_float(-9999.))
+                varsToKeep["ak8bJet{}_eta".format(i)]                = op.switch(op.rng_len(self.ak8BJets) >= i, self.ak8BJets[i-1].eta, op.c_float(-9999.))
+                varsToKeep["ak8bJet{}_phi".format(i)]                = op.switch(op.rng_len(self.ak8BJets) >= i, self.ak8BJets[i-1].phi, op.c_float(-9999.))
+                varsToKeep["ak8bJet{}_E".format(i)]                  = op.switch(op.rng_len(self.ak8BJets) >= i, self.ak8BJets[i-1].p4.E(), op.c_float(-9999., "float"))
+                varsToKeep["ak8bJet{}_msoftdrop".format(i)]          = op.switch(op.rng_len(self.ak8BJets) >= i, self.ak8BJets[i-1].msoftdrop, op.c_float(-9999.))
+                varsToKeep["ak8bJet{}_tau1".format(i)]               = op.switch(op.rng_len(self.ak8BJets) >= i, self.ak8BJets[i-1].tau1, op.c_float(-9999.))
+                varsToKeep["ak8bJet{}_tau2".format(i)]               = op.switch(op.rng_len(self.ak8BJets) >= i, self.ak8BJets[i-1].tau2, op.c_float(-9999.))
+                varsToKeep["ak8bJet{}_subjet0_pt".format(i)]         = op.switch(op.rng_len(self.ak8BJets) >= i, self.ak8BJets[i-1].subJet1.pt, op.c_float(-9999.))
+                varsToKeep["ak8bJet{}_subjet0_eta".format(i)]        = op.switch(op.rng_len(self.ak8BJets) >= i, self.ak8BJets[i-1].subJet1.eta, op.c_float(-9999.))
+                varsToKeep["ak8bJet{}_subjet0_phi".format(i)]        = op.switch(op.rng_len(self.ak8BJets) >= i, self.ak8BJets[i-1].subJet1.phi, op.c_float(-9999.))
+                varsToKeep["ak8bJet{}_subjet0_CSV".format(i)]        = op.switch(op.rng_len(self.ak8BJets) >= i, self.ak8BJets[i-1].subJet1.btagDeepB, op.c_float(-9999.))
+                varsToKeep["ak8bJet{}_subjet1_pt".format(i)]         = op.switch(op.rng_len(self.ak8BJets) >= i, self.ak8BJets[i-1].subJet2.pt, op.c_float(-9999.))
+                varsToKeep["ak8bJet{}_subjet1_eta".format(i)]        = op.switch(op.rng_len(self.ak8BJets) >= i, self.ak8BJets[i-1].subJet2.eta, op.c_float(-9999.))
+                varsToKeep["ak8bJet{}_subjet1_phi".format(i)]        = op.switch(op.rng_len(self.ak8BJets) >= i, self.ak8BJets[i-1].subJet2.phi, op.c_float(-9999.))
+                varsToKeep["ak8bJet{}_subjet1_CSV".format(i)]        = op.switch(op.rng_len(self.ak8BJets) >= i, self.ak8BJets[i-1].subJet2.btagDeepB, op.c_float(-9999.))
 
             # JPA #
             isResolved = any([self.args.__dict__[item] for item in ["Ak4","Res2b2Wj","Res2b1Wj","Res2b0Wj","Res1b2Wj","Res1b1Wj","Res1b0Wj","Res0b"]]) 
@@ -556,11 +595,12 @@ class SkimmerNanoHHtobbWWSL(BaseNanoHHtobbWW,SkimmerModule):
         #----- MET variables -----#
         MET = self.corrMET
         
-        varsToKeep['METpt']   = MET.pt
-        varsToKeep['METphi']  = MET.phi
-        varsToKeep['METpx']   = MET.p4.Px()
-        varsToKeep['METpy']   = MET.p4.Py()
-        varsToKeep['METpz']   = MET.p4.Pz()
+        varsToKeep['METpt']       = MET.pt
+        varsToKeep['METphi']      = MET.phi
+        varsToKeep['METpx']       = MET.p4.Px()
+        varsToKeep['METpy']       = MET.p4.Py()
+        varsToKeep['METpz']       = MET.p4.Pz()
+        varsToKeep['METenergy']   = MET.p4.E()
         
 
         #----- Lepton variables -----#
@@ -595,7 +635,8 @@ class SkimmerNanoHHtobbWWSL(BaseNanoHHtobbWW,SkimmerModule):
         varsToKeep['lepmet_pt']   = self.HLL.SinglepMet_Pt(lepton,MET)
 
         varsToKeep['lep_MT']      = self.HLL.MT(lepton,MET)
-        varsToKeep['MET_LD']      = self.HLL.MET_LD(self.corrMET, self.ak4Jets, self.electronsFakeSel) if self.args.Channel == "El" else self.HLL.MET_LD(self.corrMET, self.ak4Jets, self.muonsFakeSel)
+        #varsToKeep['MET_LD']      = self.HLL.MET_LD(self.corrMET, self.ak4Jets, self.electronsFakeSel) if self.args.Channel == "El" else self.HLL.MET_LD(self.corrMET, self.ak4Jets, self.muonsFakeSel)
+        varsToKeep['MET_LD']      = self.HLL.MET_LD_DL(self.corrMET, self.ak4Jets, self.electronsFakeSel, self.muonsFakeSel)
         varsToKeep['lep_conept']  = self.HLL.lambdaConePt(lepton)
 
         #----- Jet variables -----#
@@ -609,12 +650,16 @@ class SkimmerNanoHHtobbWWSL(BaseNanoHHtobbWW,SkimmerModule):
             # Res1b0Wj : jet1   jet2=0   jet3=0   jet4=0
             # Res0b    : all jet = 0 because, this is not a JPA category. Only lepton and MET variables will be saved.
             ##########################################################################################################
+            
             if self.args.Res2b2Wj:
                 print('||| Resolved 2b2Wj category')
                 jet1 = Res2b2Wjets[0]
                 jet2 = Res2b2Wjets[1]
                 jet3 = Res2b2Wjets[2]
                 jet4 = Res2b2Wjets[3]
+                #lambda_cleanVBFresolved = lambda j : op.NOT(op.OR(op.deltaR(jet1.p4, j.p4) <= 0.8 , op.deltaR(jet2.p4, j.p4) <= 0.8))
+                #VBFJetsJPA              = op.select(self.VBFJets, lambda_cleanVBFresolved)
+                #VBFJetPairsJPA          = op.sort(op.combine(VBFJetsJPA, N=2, pred=self.lambda_VBFPair), lambda dijet : -op.invariant_mass(dijet[0].p4,dijet[1]))
 
             if self.args.Res2b1Wj:
                 print('||| Resolved 2b1Wj category')
@@ -622,6 +667,11 @@ class SkimmerNanoHHtobbWWSL(BaseNanoHHtobbWW,SkimmerModule):
                 jet2 = Res2b1Wjets[1]
                 jet3 = Res2b1Wjets[2]
                 # jet4 missing
+                
+                #VBFJetsJPA = op.select(self.VBFJets, self.lambda_cleanVBFAk4(Res2b1Wjets[:2]))
+                #VBFJetPairsJPA = op.sort(op.combine(VBFJets2b1Wj, N=2, pred=self.lambda_VBFPair), 
+                #                           lambda dijet : -op.invariant_mass(dijet[0].p4,dijet[1]))
+
 
             if self.args.Res2b0Wj:
                 print('||| Resolved 2b0Wj category')
@@ -674,99 +724,103 @@ class SkimmerNanoHHtobbWWSL(BaseNanoHHtobbWW,SkimmerModule):
             varsToKeep['L2_1b0Wj'] = L2out[5]
             varsToKeep['L2_0b'] = L2out[6]
 
-            '''
             # Jet-1 variables :: Available for each category
-            varsToKeep['bj1_Px']             = self.HLL.bJetCorrP4(jet1).Px()                if not self.args.Res0b else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['bj1_Py']             = self.HLL.bJetCorrP4(jet1).Py()                if not self.args.Res0b else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['bj1_Pz']             = self.HLL.bJetCorrP4(jet1).Pz()                if not self.args.Res0b else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['bj1_E']              = self.HLL.bJetCorrP4(jet1).E()                 if not self.args.Res0b else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['bj1_pt']             = self.HLL.bJetCorrP4(jet1).Pt()                if not self.args.Res0b else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['bj1_eta']            = self.HLL.bJetCorrP4(jet1).Eta()               if not self.args.Res0b else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['bj1_phi']            = self.HLL.bJetCorrP4(jet1).Phi()               if not self.args.Res0b else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['bj1_bTagDeepFlavB']  = jet1.btagDeepFlavB                            if not self.args.Res0b else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['bj1_bTagCSVV2']      = jet1.btagCSVV2                                if not self.args.Res0b else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['bj1LepDR']           = op.deltaR(jet1.p4, lepton.p4)                 if not self.args.Res0b else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['bj1LepDPhi']         = op.abs(op.deltaPhi(jet1.p4, lepton.p4))       if not self.args.Res0b else op.static_cast("Float_t",op.c_float(-9999.))  
-            varsToKeep['bj1MetDPhi']         = op.abs(self.HLL.SinglepMet_dPhi(jet1, MET))   if not self.args.Res0b else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['minDR_lep_allJets']  = self.HLL.mindr_lep1_jet(lepton, self.ak4Jets) if not self.args.Res0b else op.static_cast("Float_t",op.c_float(-9999.))
+            varsToKeep['bj1_Px']             = self.HLL.bJetCorrP4(jet1).Px()                if not self.args.Res0b else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['bj1_Py']             = self.HLL.bJetCorrP4(jet1).Py()                if not self.args.Res0b else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['bj1_Pz']             = self.HLL.bJetCorrP4(jet1).Pz()                if not self.args.Res0b else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['bj1_E']              = self.HLL.bJetCorrP4(jet1).E()                 if not self.args.Res0b else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['bj1_pt']             = self.HLL.bJetCorrP4(jet1).Pt()                if not self.args.Res0b else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['bj1_eta']            = self.HLL.bJetCorrP4(jet1).Eta()               if not self.args.Res0b else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['bj1_phi']            = self.HLL.bJetCorrP4(jet1).Phi()               if not self.args.Res0b else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['bj1_bTagDeepFlavB']  = jet1.btagDeepFlavB                            if not self.args.Res0b else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['bj1_bTagCSVV2']      = jet1.btagCSVV2                                if not self.args.Res0b else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['bj1LepDR']           = op.deltaR(jet1.p4, lepton.p4)                 if not self.args.Res0b else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['bj1LepDPhi']         = op.abs(op.deltaPhi(jet1.p4, lepton.p4))       if not self.args.Res0b else op.static_cast("Float_t",op.c_float(0.))  
+            varsToKeep['bj1MetDPhi']         = op.abs(self.HLL.SinglepMet_dPhi(jet1, MET))   if not self.args.Res0b else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['minDR_lep_allJets']  = self.HLL.mindr_lep1_jet(lepton, self.ak4Jets) if not self.args.Res0b else op.static_cast("Float_t",op.c_float(0.))
             
             # Jet-2 variables :: Available for 2b2Wj, 2b1Wj. 2b0Wj
             has2b = any([self.args.Res2b2Wj, self.args.Res2b1Wj, self.args.Res2b0Wj])
-            varsToKeep['bj2_Px']            = self.HLL.bJetCorrP4(jet2).Px()                 if has2b else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['bj2_Py']            = self.HLL.bJetCorrP4(jet2).Py()                 if has2b else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['bj2_Pz']            = self.HLL.bJetCorrP4(jet2).Pz()                 if has2b else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['bj2_E']             = self.HLL.bJetCorrP4(jet2).E()                  if has2b else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['bj2_pt']            = self.HLL.bJetCorrP4(jet2).Pt()                 if has2b else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['bj2_eta']           = self.HLL.bJetCorrP4(jet2).Eta()                if has2b else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['bj2_phi']           = self.HLL.bJetCorrP4(jet2).Phi()                if has2b else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['bj2_bTagDeepFlavB'] = jet2.btagDeepFlavB                             if has2b else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['bj2_bTagCSVV2']     = jet2.btagCSVV2                                 if has2b else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['bj2LepDR']          = op.deltaR(jet2.p4, lepton.p4)                  if has2b else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['bj2LepDPhi']        = op.abs(op.deltaPhi(jet2.p4, lepton.p4))        if has2b else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['bj2MetDPhi']        = op.abs(self.HLL.SinglepMet_dPhi(jet2, MET))    if has2b else op.static_cast("Float_t",op.c_float(-9999.))
+            varsToKeep['bj2_Px']            = self.HLL.bJetCorrP4(jet2).Px()                 if has2b else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['bj2_Py']            = self.HLL.bJetCorrP4(jet2).Py()                 if has2b else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['bj2_Pz']            = self.HLL.bJetCorrP4(jet2).Pz()                 if has2b else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['bj2_E']             = self.HLL.bJetCorrP4(jet2).E()                  if has2b else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['bj2_pt']            = self.HLL.bJetCorrP4(jet2).Pt()                 if has2b else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['bj2_eta']           = self.HLL.bJetCorrP4(jet2).Eta()                if has2b else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['bj2_phi']           = self.HLL.bJetCorrP4(jet2).Phi()                if has2b else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['bj2_bTagDeepFlavB'] = jet2.btagDeepFlavB                             if has2b else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['bj2_bTagCSVV2']     = jet2.btagCSVV2                                 if has2b else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['bj2LepDR']          = op.deltaR(jet2.p4, lepton.p4)                  if has2b else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['bj2LepDPhi']        = op.abs(op.deltaPhi(jet2.p4, lepton.p4))        if has2b else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['bj2MetDPhi']        = op.abs(self.HLL.SinglepMet_dPhi(jet2, MET))    if has2b else op.static_cast("Float_t",op.c_float(0.))
             # Di-Jet Variables
-            varsToKeep['bj1bj2_pt']         = (self.HLL.bJetCorrP4(jet1)+self.HLL.bJetCorrP4(jet2)).Pt()                        if has2b else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['bj1bj2_M']          = op.invariant_mass(self.HLL.bJetCorrP4(jet1),self.HLL.bJetCorrP4(jet2))            if has2b else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['cosThetaS_Hbb']     = self.HLL.comp_cosThetaS(self.HLL.bJetCorrP4(jet1), self.HLL.bJetCorrP4(jet2))     if has2b else op.static_cast("Float_t",op.c_float(-9999.))
+            varsToKeep['bj1bj2_pt']         = (self.HLL.bJetCorrP4(jet1)+self.HLL.bJetCorrP4(jet2)).Pt()                        if has2b else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['bj1bj2_M']          = op.invariant_mass(self.HLL.bJetCorrP4(jet1),self.HLL.bJetCorrP4(jet2))            if has2b else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['cosThetaS_Hbb']     = self.HLL.comp_cosThetaS(self.HLL.bJetCorrP4(jet1), self.HLL.bJetCorrP4(jet2))     if has2b else op.static_cast("Float_t",op.c_float(0.))
             varsToKeep['mT_top_3particle']  = op.min(self.HLL.mT2(self.HLL.bJetCorrP4(jet1),lepton.p4 ,MET.p4), 
-                                                     self.HLL.mT2(self.HLL.bJetCorrP4(jet2), lepton.p4, MET.p4))                if has2b else op.static_cast("Float_t",op.c_float(-9999.))
+                                                     self.HLL.mT2(self.HLL.bJetCorrP4(jet2), lepton.p4, MET.p4))                if has2b else op.static_cast("Float_t",op.c_float(0.))
             
             # Jet-3 variables :: Available for 2b2Wj, 2b1Wj, 1b2Wj, 1b1Wj
             has1stWjet = any([self.args.Res2b2Wj, self.args.Res2b1Wj, self.args.Res1b2Wj, self.args.Res1b1Wj])
-            varsToKeep['wj1_Px']            = jet3.p4.Px()                                if has1stWjet else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['wj1_Py']            = jet3.p4.Py()                                if has1stWjet else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['wj1_Pz']            = jet3.p4.Pz()                                if has1stWjet else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['wj1_E']             = jet3.p4.E()                                 if has1stWjet else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['wj1_pt']            = jet3.pt                                     if has1stWjet else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['wj1_eta']           = jet3.eta                                    if has1stWjet else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['wj1_phi']           = jet3.phi                                    if has1stWjet else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['wj1_bTagDeepFlavB'] = jet3.btagDeepFlavB                          if has1stWjet else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['wj1_bTagCSVV2']     = jet3.btagCSVV2                              if has1stWjet else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['wj1LepDR']          = op.deltaR(jet3.p4, lepton.p4)               if has1stWjet else op.static_cast("Float_t",op.c_float(-9999.)) 
-            varsToKeep['wj1LepDPhi']        = op.abs(op.deltaPhi(jet3.p4, lepton.p4))     if has1stWjet else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['wj1MetDPhi']        = op.abs(self.HLL.SinglepMet_dPhi(jet3, MET)) if has1stWjet else op.static_cast("Float_t",op.c_float(-9999.))
+            varsToKeep['wj1_Px']            = jet3.p4.Px()                                if has1stWjet else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['wj1_Py']            = jet3.p4.Py()                                if has1stWjet else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['wj1_Pz']            = jet3.p4.Pz()                                if has1stWjet else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['wj1_E']             = jet3.p4.E()                                 if has1stWjet else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['wj1_pt']            = jet3.pt                                     if has1stWjet else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['wj1_eta']           = jet3.eta                                    if has1stWjet else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['wj1_phi']           = jet3.phi                                    if has1stWjet else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['wj1_bTagDeepFlavB'] = jet3.btagDeepFlavB                          if has1stWjet else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['wj1_bTagCSVV2']     = jet3.btagCSVV2                              if has1stWjet else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['wj1LepDR']          = op.deltaR(jet3.p4, lepton.p4)               if has1stWjet else op.static_cast("Float_t",op.c_float(0.)) 
+            varsToKeep['wj1LepDPhi']        = op.abs(op.deltaPhi(jet3.p4, lepton.p4))     if has1stWjet else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['wj1MetDPhi']        = op.abs(self.HLL.SinglepMet_dPhi(jet3, MET)) if has1stWjet else op.static_cast("Float_t",op.c_float(0.))
 
             # Jet-4 variables :: Available for 2b2Wj, 1b2Wj
             has2ndWjet = any([self.args.Res2b2Wj, self.args.Res1b2Wj])
-            varsToKeep['wj2_Px']  = jet4.p4.Px()                                            if has2ndWjet else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['wj2_Py']  = jet4.p4.Py()                                            if has2ndWjet else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['wj2_Pz']  = jet4.p4.Pz()                                            if has2ndWjet else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['wj2_E']   = jet4.p4.E()                                             if has2ndWjet else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['wj2_pt']  = jet4.pt                                                 if has2ndWjet else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['wj2_eta'] = jet4.eta                                                if has2ndWjet else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['wj2_phi'] = jet4.phi                                                if has2ndWjet else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['wj2_bTagDeepFlavB'] = jet4.btagDeepFlavB                            if has2ndWjet else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['wj2_bTagCSVV2']     = jet4.btagCSVV2                                if has2ndWjet else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['wj2LepDR']          = op.deltaR(jet4.p4, lepton.p4)                 if has2ndWjet else op.static_cast("Float_t",op.c_float(-9999.)) 
-            varsToKeep['wj2LepDPhi']  = op.abs(op.deltaPhi(jet4.p4, lepton.p4))             if has2ndWjet else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['wj2MetDPhi']  = op.abs(self.HLL.SinglepMet_dPhi(jet4, MET))         if has2ndWjet else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['wj1wj2_pt']   = (jet3.p4 + jet4.p4).Pt()                            if has2ndWjet else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['wj1wj2_M']    = op.invariant_mass(jet3.p4, jet4.p4)                 if has2ndWjet else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['w1w2_MT']     = self.HLL.MT_W1W2_ljj(lepton,jet3,jet4,MET)          if has2ndWjet else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['HWW_Mass']    = self.HLL.HWW_simple(jet3.p4,jet4.p4,lepton.p4,MET).M() if has2ndWjet else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['HWW_Simple_Mass'] = self.HLL.HWW_met_simple(jet3.p4,jet4.p4,lepton.p4,MET.p4).M() if has2ndWjet else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['HWW_dR'] = self.HLL.dR_Hww(jet3.p4,jet4.p4,lepton.p4,MET)           if has2ndWjet else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['cosThetaS_Wjj_simple'] = self.HLL.comp_cosThetaS(jet3.p4, jet4.p4)  if has2ndWjet else op.static_cast("Float_t",op.c_float(-9999.))
+            varsToKeep['wj2_Px']  = jet4.p4.Px()                                            if has2ndWjet else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['wj2_Py']  = jet4.p4.Py()                                            if has2ndWjet else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['wj2_Pz']  = jet4.p4.Pz()                                            if has2ndWjet else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['wj2_E']   = jet4.p4.E()                                             if has2ndWjet else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['wj2_pt']  = jet4.pt                                                 if has2ndWjet else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['wj2_eta'] = jet4.eta                                                if has2ndWjet else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['wj2_phi'] = jet4.phi                                                if has2ndWjet else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['wj2_bTagDeepFlavB'] = jet4.btagDeepFlavB                            if has2ndWjet else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['wj2_bTagCSVV2']     = jet4.btagCSVV2                                if has2ndWjet else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['wj2LepDR']          = op.deltaR(jet4.p4, lepton.p4)                 if has2ndWjet else op.static_cast("Float_t",op.c_float(0.)) 
+            varsToKeep['wj2LepDPhi']  = op.abs(op.deltaPhi(jet4.p4, lepton.p4))             if has2ndWjet else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['wj2MetDPhi']  = op.abs(self.HLL.SinglepMet_dPhi(jet4, MET))         if has2ndWjet else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['wj1wj2_pt']   = (jet3.p4 + jet4.p4).Pt()                            if has2ndWjet else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['wj1wj2_M']    = op.invariant_mass(jet3.p4, jet4.p4)                 if has2ndWjet else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['w1w2_MT']     = self.HLL.MT_W1W2_ljj(lepton,jet3,jet4,MET)          if has2ndWjet else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['HWW_Mass']    = self.HLL.HWW_simple(jet3.p4,jet4.p4,lepton.p4,MET).M() if has2ndWjet else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['HWW_Simple_Mass'] = self.HLL.HWW_met_simple(jet3.p4,jet4.p4,lepton.p4,MET.p4).M() if has2ndWjet else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['HWW_dR'] = self.HLL.dR_Hww(jet3.p4,jet4.p4,lepton.p4,MET)           if has2ndWjet else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['cosThetaS_Wjj_simple'] = self.HLL.comp_cosThetaS(jet3.p4, jet4.p4)  if has2ndWjet else op.static_cast("Float_t",op.c_float(0.))
             varsToKeep['cosThetaS_WW_simple_met'] = self.HLL.comp_cosThetaS(self.HLL.Wjj_simple(jet3.p4,jet4.p4), 
-                                                                            self.HLL.Wlep_met_simple(lepton.p4, MET.p4))               if has2ndWjet else op.static_cast("Float_t",op.c_float(-9999.))
+                                                                            self.HLL.Wlep_met_simple(lepton.p4, MET.p4))               if has2ndWjet else op.static_cast("Float_t",op.c_float(0.))
             varsToKeep['cosThetaS_HH_simple_met'] = self.HLL.comp_cosThetaS(self.HLL.bJetCorrP4(jet1)+self.HLL.bJetCorrP4(jet2), 
-                                                                            self.HLL.HWW_met_simple(jet3.p4,jet4.p4,lepton.p4,MET.p4)) if self.args.Res2b2Wj else op.static_cast("Float_t",op.c_float(-9999.))
+                                                                            self.HLL.HWW_met_simple(jet3.p4,jet4.p4,lepton.p4,MET.p4)) if self.args.Res2b2Wj else op.static_cast("Float_t",op.c_float(0.))
 
-
+            # neu p4 only for 1b2Wj and 2b2Wj
+            varsToKeep["neuPx"] = self.HLL.neuP4(jet3.p4+jet4.p4+lepton.p4, MET).Px()  if any([self.args.Res2b2Wj, self.args.Res1b2Wj]) else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep["neuPy"] = self.HLL.neuP4(jet3.p4+jet4.p4+lepton.p4, MET).Py()  if any([self.args.Res2b2Wj, self.args.Res1b2Wj]) else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep["neuPz"] = self.HLL.neuP4(jet3.p4+jet4.p4+lepton.p4, MET).Pz()  if any([self.args.Res2b2Wj, self.args.Res1b2Wj]) else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep["neuE"] = self.HLL.neuP4(jet3.p4+jet4.p4+lepton.p4, MET).E()    if any([self.args.Res2b2Wj, self.args.Res1b2Wj]) else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep["neuPt"] = self.HLL.neuP4(jet3.p4+jet4.p4+lepton.p4, MET).Pt()  if any([self.args.Res2b2Wj, self.args.Res1b2Wj]) else op.static_cast("Float_t",op.c_float(0.))
 
 
             # diJet dR & dPhi
             hasbj1wj1 = any([self.args.Res2b2Wj, self.args.Res2b1Wj, self.args.Res1b2Wj, self.args.Res1b1Wj])
-            varsToKeep['bj1bj2_DR']   = op.deltaR(jet1.p4,jet2.p4)             if has2b else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['bj1bj2_DPhi'] = op.abs(op.deltaPhi(jet1.p4,jet2.p4))   if has2b else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['bj2wj1_DR']   = op.deltaR(jet2.p4,jet3.p4)             if any([self.args.Res2b2Wj, self.args.Res2b1Wj]) else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['bj2wj1_DPhi'] = op.abs(op.deltaPhi(jet2.p4,jet3.p4))   if any([self.args.Res2b2Wj, self.args.Res2b1Wj]) else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['wj1wj2_DR']   = op.deltaR(jet3.p4,jet4.p4)             if any([self.args.Res2b2Wj, self.args.Res1b2Wj]) else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['wj1wj2_DPhi'] = op.abs(op.deltaPhi(jet3.p4,jet4.p4))   if any([self.args.Res2b2Wj, self.args.Res1b2Wj]) else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['bj1wj2_DR']   = op.deltaR(jet1.p4,jet4.p4)             if any([self.args.Res2b2Wj, self.args.Res1b2Wj]) else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['bj1wj2_DPhi'] = op.abs(op.deltaPhi(jet1.p4,jet4.p4))   if any([self.args.Res2b2Wj, self.args.Res1b2Wj]) else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['bj1wj1_DR']   = op.deltaR(jet1.p4,jet3.p4)             if hasbj1wj1 else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['bj1wj1_DPhi'] = op.abs(op.deltaPhi(jet1.p4,jet3.p4))   if hasbj1wj1 else op.static_cast("Float_t",op.c_float(-9999.))
+            varsToKeep['bj1bj2_DR']   = op.deltaR(jet1.p4,jet2.p4)             if has2b else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['bj1bj2_DPhi'] = op.abs(op.deltaPhi(jet1.p4,jet2.p4))   if has2b else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['bj2wj1_DR']   = op.deltaR(jet2.p4,jet3.p4)             if any([self.args.Res2b2Wj, self.args.Res2b1Wj]) else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['bj2wj1_DPhi'] = op.abs(op.deltaPhi(jet2.p4,jet3.p4))   if any([self.args.Res2b2Wj, self.args.Res2b1Wj]) else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['wj1wj2_DR']   = op.deltaR(jet3.p4,jet4.p4)             if any([self.args.Res2b2Wj, self.args.Res1b2Wj]) else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['wj1wj2_DPhi'] = op.abs(op.deltaPhi(jet3.p4,jet4.p4))   if any([self.args.Res2b2Wj, self.args.Res1b2Wj]) else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['bj1wj2_DR']   = op.deltaR(jet1.p4,jet4.p4)             if any([self.args.Res2b2Wj, self.args.Res1b2Wj]) else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['bj1wj2_DPhi'] = op.abs(op.deltaPhi(jet1.p4,jet4.p4))   if any([self.args.Res2b2Wj, self.args.Res1b2Wj]) else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['bj1wj1_DR']   = op.deltaR(jet1.p4,jet3.p4)             if hasbj1wj1 else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['bj1wj1_DPhi'] = op.abs(op.deltaPhi(jet1.p4,jet3.p4))   if hasbj1wj1 else op.static_cast("Float_t",op.c_float(0.))
 
 
             if self.args.Res2b2Wj : 
@@ -774,37 +828,60 @@ class SkimmerNanoHHtobbWWSL(BaseNanoHHtobbWW,SkimmerModule):
                 varsToKeep['minLepJetDR']    = self.HLL.MinDR_lep4j(lepton,jet1,jet2,jet3,jet4)
                 varsToKeep['HT2_lepJetMet']  = self.HLL.HT2_l4jmet(lepton,jet1,jet2,jet3,jet4,MET)
                 varsToKeep['HT2R_lepJetMet'] = self.HLL.HT2R_l4jmet(lepton,jet1,jet2,jet3,jet4,MET)
+                varsToKeep['JPAcat']         = op.c_int(11)
+                #varsToKeep['VBFj1pt']        = op.switch(op.rng_len(VBFJetPairsJPA) > 0, 
+                #                                         op.switch(VBFJetPairsJPA[0][0].pt > VBFJetPairsJPA[0][1].pt,
+                #                                                   VBFJetPairsJPA[0][0].pt, VBFJetPairsJPA[0][1].pt),
+                #                                         op.static_cast("Float_t",op.c_float(0.)))
+                #varsToKeep['VBFj2pt']        = op.switch(op.rng_len(VBFJetPairsJPA) > 0, 
+                #                                         op.switch(VBFJetPairsJPA[0][0].pt > VBFJetPairsJPA[0][1].pt,
+                #                                                   VBFJetPairsJPA[0][1].pt, VBFJetPairsJPA[0][0].pt),
+                #                                         op.static_cast("Float_t",op.c_float(0.)))
 
             if self.args.Res2b1Wj : 
                 varsToKeep['minJetDR']       = self.HLL.MinDiJetDRLoose(jet1,jet2,jet3)
                 varsToKeep['minLepJetDR']    = self.HLL.MinDR_lep3j(lepton,jet1,jet2,jet3)
                 varsToKeep['HT2_lepJetMet']  = self.HLL.HT2_l3jmet(lepton,jet1,jet2,jet3,MET)
                 varsToKeep['HT2R_lepJetMet'] = self.HLL.HT2R_l3jmet(lepton,jet1,jet2,jet3,MET)
+                varsToKeep['JPAcat']         = op.c_int(12)
 
             if self.args.Res2b0Wj : 
                 varsToKeep['minJetDR']       = op.deltaR(jet1.p4,jet2.p4)
                 varsToKeep['minLepJetDR']    = self.HLL.MinDR_lep2j(lepton,jet1,jet2)
                 varsToKeep['HT2_lepJetMet']  = self.HLL.HT2_l2jmet(lepton,jet1,jet2,MET)
                 varsToKeep['HT2R_lepJetMet'] = self.HLL.HT2R_l2jmet(lepton,jet1,jet2,MET)
+                varsToKeep['JPAcat']         = op.c_int(13)
 
             if self.args.Res1b2Wj : 
                 varsToKeep['minJetDR']       = self.HLL.MinDiJetDRLoose(jet1,jet3,jet4)
                 varsToKeep['minLepJetDR']    = self.HLL.MinDR_lep3j(lepton,jet1,jet3,jet4)
                 varsToKeep['HT2_lepJetMet']  = self.HLL.HT2_l3jmet(lepton,jet1,jet3,jet4,MET)
                 varsToKeep['HT2R_lepJetMet'] = self.HLL.HT2R_l3jmet(lepton,jet1,jet3,jet4,MET)
+                varsToKeep['JPAcat']         = op.c_int(14)
 
             if self.args.Res1b1Wj : 
                 varsToKeep['minJetDR']       = op.deltaR(jet1.p4,jet3.p4)
                 varsToKeep['minLepJetDR']    = self.HLL.MinDR_lep2j(lepton,jet1,jet3)
                 varsToKeep['HT2_lepJetMet']  = self.HLL.HT2_l2jmet(lepton,jet1,jet3,MET)
                 varsToKeep['HT2R_lepJetMet'] = self.HLL.HT2R_l2jmet(lepton,jet1,jet3,MET)
+                varsToKeep['JPAcat']         = op.c_int(15)
 
             if self.args.Res1b0Wj : 
-                varsToKeep['minJetDR']       = op.static_cast("Float_t",op.c_float(-9999.))
+                varsToKeep['minJetDR']       = op.static_cast("Float_t",op.c_float(0.))
                 varsToKeep['minLepJetDR']    = op.deltaR(lepton.p4, jet1.p4)
                 varsToKeep['HT2_lepJetMet']  = self.HLL.HT2_l1jmet(lepton,jet1,MET)
                 varsToKeep['HT2R_lepJetMet'] = self.HLL.HT2R_l1jmet(lepton,jet1,MET)
-            '''
+                varsToKeep['JPAcat']         = op.c_int(16)
+
+            if self.args.Res0b : 
+                varsToKeep['minJetDR']       = op.static_cast("Float_t",op.c_float(0.))
+                varsToKeep['minLepJetDR']    = op.static_cast("Float_t",op.c_float(0.))
+                varsToKeep['HT2_lepJetMet']  = op.static_cast("Float_t",op.c_float(0.))
+                varsToKeep['HT2R_lepJetMet'] = op.static_cast("Float_t",op.c_float(0.))
+                varsToKeep['JPAcat']         = op.c_int(17)
+
+            
+
         #----- Fatjet variables -----#
         if any([self.args.__dict__[item] for item in ["Ak8","Hbb2Wj","Hbb1Wj","Hbb0Wj"]]):
             #######################################
@@ -835,11 +912,11 @@ class SkimmerNanoHHtobbWWSL(BaseNanoHHtobbWW,SkimmerModule):
             varsToKeep['fatbj_E']              = fatjet.p4.E()
             varsToKeep['fatbj_pt']             = fatjet.pt
             varsToKeep['fatbj_eta']            = fatjet.eta
-            varsToKeep['fatbj_sub1pt']         = jet1.pt
-            varsToKeep['fatbj_sub1eta']        = jet1.eta
-            varsToKeep['fatbj_sub2pt']         = jet2.pt
-            varsToKeep['fatbj_sub2eta']        = jet2.eta
             varsToKeep['fatbj_phi']            = fatjet.phi
+            varsToKeep['fatbj_sub1pt']         = op.switch(jet1.btagDeepB > jet2.btagDeepB, jet1.pt, jet2.pt)
+            varsToKeep['fatbj_sub1eta']        = op.switch(jet1.btagDeepB > jet2.btagDeepB, jet1.eta, jet2.eta)
+            varsToKeep['fatbj_sub2pt']         = op.switch(jet1.btagDeepB > jet2.btagDeepB, jet2.pt, jet1.pt)
+            varsToKeep['fatbj_sub2eta']        = op.switch(jet1.btagDeepB > jet2.btagDeepB, jet2.eta, jet1.eta)
             varsToKeep['fatbj_softdropMass']   = fatjet.msoftdrop
             # deepBtags
             varsToKeep['fatbj_btagDDBvL']      = fatjet.btagDDBvL
@@ -850,87 +927,107 @@ class SkimmerNanoHHtobbWWSL(BaseNanoHHtobbWW,SkimmerModule):
             varsToKeep['fatbj_btagDDCvL_noMD'] = fatjet.btagDDCvL_noMD
             varsToKeep['fatbj_btagDeepB']      = fatjet.btagDeepB
 
-            varsToKeep['wj1_Px']      = jet3.p4.Px()                 if not self.args.Hbb0Wj else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['wj1_Py']      = jet3.p4.Py()                 if not self.args.Hbb0Wj else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['wj1_Pz']      = jet3.p4.Pz()                 if not self.args.Hbb0Wj else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['wj1_E']       = jet3.p4.E()                  if not self.args.Hbb0Wj else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['wj1_pt']      = jet3.pt                      if not self.args.Hbb0Wj else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['wj1_eta']     = jet3.eta                     if not self.args.Hbb0Wj else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['wj1_bTagDeepFlavB'] = jet3.btagDeepFlavB     if not self.args.Hbb0Wj else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['wj1_bTagCSVV2']     = jet3.btagCSVV2         if not self.args.Hbb0Wj else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['wj2_Px']      = jet4.p4.Px()               if self.args.Hbb2Wj else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['wj2_Py']      = jet4.p4.Py()               if self.args.Hbb2Wj else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['wj2_Pz']      = jet4.p4.Pz()               if self.args.Hbb2Wj else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['wj2_E']       = jet4.p4.E()                if self.args.Hbb2Wj else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['wj2_pt']      = jet4.pt                    if self.args.Hbb2Wj else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['wj2_eta']     = jet4.eta                   if self.args.Hbb2Wj else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['wj2_bTagDeepFlavB'] = jet4.btagDeepFlavB   if self.args.Hbb2Wj else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['wj2_bTagCSVV2']     = jet4.btagCSVV2       if self.args.Hbb2Wj else op.static_cast("Float_t",op.c_float(-9999.))
-
-
             
             varsToKeep['cosThetaS_Hbb']     = self.HLL.comp_cosThetaS(jet1.p4, jet2.p4)
             varsToKeep['mT_top_3particle']  = op.min(self.HLL.mT2(jet1.p4,lepton.p4,MET.p4), self.HLL.mT2(jet2.p4,lepton.p4,MET.p4))
 
 
+            varsToKeep['wj1_Px']      = jet3.p4.Px()                 if not self.args.Hbb0Wj else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['wj1_Py']      = jet3.p4.Py()                 if not self.args.Hbb0Wj else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['wj1_Pz']      = jet3.p4.Pz()                 if not self.args.Hbb0Wj else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['wj1_E']       = jet3.p4.E()                  if not self.args.Hbb0Wj else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['wj1_pt']      = jet3.pt                      if not self.args.Hbb0Wj else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['wj1_eta']     = jet3.eta                     if not self.args.Hbb0Wj else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['wj1_bTagDeepFlavB'] = jet3.btagDeepFlavB     if not self.args.Hbb0Wj else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['wj1_bTagCSVV2']     = jet3.btagCSVV2         if not self.args.Hbb0Wj else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['wj2_Px']      = jet4.p4.Px()               if self.args.Hbb2Wj else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['wj2_Py']      = jet4.p4.Py()               if self.args.Hbb2Wj else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['wj2_Pz']      = jet4.p4.Pz()               if self.args.Hbb2Wj else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['wj2_E']       = jet4.p4.E()                if self.args.Hbb2Wj else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['wj2_pt']      = jet4.pt                    if self.args.Hbb2Wj else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['wj2_eta']     = jet4.eta                   if self.args.Hbb2Wj else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['wj2_bTagDeepFlavB'] = jet4.btagDeepFlavB   if self.args.Hbb2Wj else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['wj2_bTagCSVV2']     = jet4.btagCSVV2       if self.args.Hbb2Wj else op.static_cast("Float_t",op.c_float(0.))
+
+
+
             varsToKeep['fatbj_lepDR']       = op.deltaR(fatjet.p4, lepton.p4)
-            varsToKeep['fatbjSub1_lepDR']   = op.deltaR(jet1.p4, lepton.p4)
-            varsToKeep['fatbjSub2_lepDR']   = op.deltaR(jet2.p4, lepton.p4)
+            varsToKeep['fatbjSub1_lepDR']   = op.switch(jet1.btagDeepB > jet2.btagDeepB, op.deltaR(jet1.p4, lepton.p4), op.deltaR(jet2.p4, lepton.p4))
+            varsToKeep['fatbjSub2_lepDR']   = op.switch(jet1.btagDeepB > jet2.btagDeepB, op.deltaR(jet2.p4, lepton.p4), op.deltaR(jet1.p4, lepton.p4))
             varsToKeep['fatbj_lepDPhi']     = op.abs(op.deltaPhi(fatjet.p4, lepton.p4))
-            varsToKeep['fatbjSub1_lepDPhi'] = op.abs(op.deltaPhi(jet1.p4, lepton.p4))
-            varsToKeep['fatbjSub2_lepDPhi'] = op.abs(op.deltaPhi(jet2.p4, lepton.p4))
+            varsToKeep['fatbjSub1_lepDPhi'] = op.switch(jet1.btagDeepB > jet2.btagDeepB, op.abs(op.deltaPhi(jet1.p4, lepton.p4)), op.abs(op.deltaPhi(jet2.p4, lepton.p4)))
+            varsToKeep['fatbjSub2_lepDPhi'] = op.switch(jet1.btagDeepB > jet2.btagDeepB, op.abs(op.deltaPhi(jet2.p4, lepton.p4)), op.abs(op.deltaPhi(jet1.p4, lepton.p4)))
             varsToKeep['minSubJetLepDR']    = op.min(op.deltaR(jet1.p4, lepton.p4), op.deltaR(jet2.p4, lepton.p4))
 
-            varsToKeep['fatbj_Wj1DR']       = op.deltaR(fatjet.p4, jet3.p4)                   if not self.args.Hbb0Wj else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['fatbj_Wj1DPhi']     = op.abs(op.deltaPhi(fatjet.p4, jet3.p4))         if not self.args.Hbb0Wj else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['fatbjSub1_Wj1DR']   = op.deltaR(jet1.p4, jet3.p4)                     if not self.args.Hbb0Wj else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['fatbjSub1_Wj1DPhi'] = op.abs(op.deltaPhi(jet1.p4, jet3.p4))           if not self.args.Hbb0Wj else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['fatbjSub2_Wj1DR']   = op.deltaR(jet2.p4, jet3.p4)                     if not self.args.Hbb0Wj else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['fatbjSub2_Wj1DPhi'] = op.abs(op.deltaPhi(jet2.p4, jet3.p4))           if not self.args.Hbb0Wj else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['wj1_lepDR']         = op.deltaR(jet3.p4, lepton.p4)                   if not self.args.Hbb0Wj else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['wj1_lepDPhi']       = op.abs(op.deltaPhi(jet3.p4, lepton.p4))         if not self.args.Hbb0Wj else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['wj2_lepDR']         = op.deltaR(jet4.p4, lepton.p4)              if self.args.Hbb2Wj else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['wj2_lepDPhi']       = op.abs(op.deltaPhi(jet4.p4, lepton.p4))    if self.args.Hbb2Wj else op.static_cast("Float_t",op.c_float(-9999.))
+            varsToKeep['fatbj_Wj1DR']       = op.deltaR(fatjet.p4, jet3.p4)                    if not self.args.Hbb0Wj else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['fatbj_Wj1DPhi']     = op.abs(op.deltaPhi(fatjet.p4, jet3.p4))          if not self.args.Hbb0Wj else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['fatbjSub1_Wj1DR']   = op.switch(jet1.btagDeepB > jet2.btagDeepB, 
+                                                        op.deltaR(jet1.p4, jet3.p4), 
+                                                        op.deltaR(jet2.p4, jet3.p4))           if not self.args.Hbb0Wj else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['fatbjSub1_Wj1DPhi'] = op.switch(jet1.btagDeepB > jet2.btagDeepB, 
+                                                        op.abs(op.deltaPhi(jet1.p4, jet3.p4)), 
+                                                        op.abs(op.deltaPhi(jet2.p4, jet3.p4))) if not self.args.Hbb0Wj else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['fatbjSub2_Wj1DR']   = op.switch(jet1.btagDeepB > jet2.btagDeepB,
+                                                        op.deltaR(jet2.p4, jet3.p4),
+                                                        op.deltaR(jet1.p4, jet3.p4))           if not self.args.Hbb0Wj else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['fatbjSub2_Wj1DPhi'] = op.switch(jet1.btagDeepB > jet2.btagDeepB,
+                                                        op.abs(op.deltaPhi(jet2.p4, jet3.p4)),
+                                                        op.abs(op.deltaPhi(jet1.p4, jet3.p4)))  if not self.args.Hbb0Wj else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['wj1_lepDR']         = op.deltaR(jet3.p4, lepton.p4)                     if not self.args.Hbb0Wj else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['wj1_lepDPhi']       = op.abs(op.deltaPhi(jet3.p4, lepton.p4))           if not self.args.Hbb0Wj else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['wj2_lepDR']         = op.deltaR(jet4.p4, lepton.p4)                     if self.args.Hbb2Wj else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['wj2_lepDPhi']       = op.abs(op.deltaPhi(jet4.p4, lepton.p4))           if self.args.Hbb2Wj else op.static_cast("Float_t",op.c_float(0.))
 
 
-            varsToKeep['fatbj_wj2DR']       = op.deltaR(fatjet.p4, jet4.p4)             if self.args.Hbb2Wj else op.static_cast("Float_t",op.c_float(-9999.)) 
-            varsToKeep['fatbj_wj2DPhi']     = op.abs(op.deltaPhi(fatjet.p4, jet4.p4))   if self.args.Hbb2Wj else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['fatbjSub1_wj2DR']   = op.deltaR(jet1.p4, jet4.p4)               if self.args.Hbb2Wj else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['fatbjSub1_wj2DPhi'] = op.abs(op.deltaPhi(jet1.p4, jet4.p4))     if self.args.Hbb2Wj else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['fatbjSub2_wj2DR']   = op.deltaR(jet2.p4, jet4.p4)               if self.args.Hbb2Wj else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['fatbjSub2_wj2DPhi'] = op.abs(op.deltaPhi(jet2.p4, jet4.p4))     if self.args.Hbb2Wj else op.static_cast("Float_t",op.c_float(-9999.))
+            varsToKeep['fatbj_wj2DR']       = op.deltaR(fatjet.p4, jet4.p4)             if self.args.Hbb2Wj else op.static_cast("Float_t",op.c_float(0.)) 
+            varsToKeep['fatbj_wj2DPhi']     = op.abs(op.deltaPhi(fatjet.p4, jet4.p4))   if self.args.Hbb2Wj else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['fatbjSub1_wj2DR']   = op.deltaR(jet1.p4, jet4.p4)               if self.args.Hbb2Wj else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['fatbjSub1_wj2DPhi'] = op.abs(op.deltaPhi(jet1.p4, jet4.p4))     if self.args.Hbb2Wj else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['fatbjSub2_wj2DR']   = op.deltaR(jet2.p4, jet4.p4)               if self.args.Hbb2Wj else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['fatbjSub2_wj2DPhi'] = op.abs(op.deltaPhi(jet2.p4, jet4.p4))     if self.args.Hbb2Wj else op.static_cast("Float_t",op.c_float(0.))
 
-            varsToKeep['wj1wj2_pt']   = (jet3.p4+jet4.p4).Pt()                    if self.args.Hbb2Wj else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['wj1wj2DR']    = op.deltaR(jet3.p4, jet4.p4)               if self.args.Hbb2Wj else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['wj1wj2DPhi']  = op.abs(op.deltaPhi(jet3.p4, jet4.p4))     if self.args.Hbb2Wj else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['wj1wj2invM']  = op.invariant_mass(jet3.p4,jet4.p4)        if self.args.Hbb2Wj else op.static_cast("Float_t",op.c_float(-9999.))
+            varsToKeep['wj1wj2_pt']   = (jet3.p4+jet4.p4).Pt()                    if self.args.Hbb2Wj else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['wj1wj2DR']    = op.deltaR(jet3.p4, jet4.p4)               if self.args.Hbb2Wj else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['wj1wj2DPhi']  = op.abs(op.deltaPhi(jet3.p4, jet4.p4))     if self.args.Hbb2Wj else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['wj1wj2invM']  = op.invariant_mass(jet3.p4,jet4.p4)        if self.args.Hbb2Wj else op.static_cast("Float_t",op.c_float(0.))
 
-            varsToKeep['HWW_Mass']        = self.HLL.HWW_simple(jet3.p4,jet4.p4,lepton.p4,MET).M()        if self.args.Hbb2Wj else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['HWW_Simple_Mass'] = self.HLL.HWW_met_simple(jet3.p4,jet4.p4,lepton.p4,MET.p4).M() if self.args.Hbb2Wj else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['HWW_dR']          = self.HLL.dR_Hww(jet3.p4,jet4.p4,lepton.p4,MET)                if self.args.Hbb2Wj else op.static_cast("Float_t",op.c_float(-9999.))
-            varsToKeep['cosThetaS_Wjj_simple'] = self.HLL.comp_cosThetaS(jet3.p4, jet4.p4)                if self.args.Hbb2Wj else op.static_cast("Float_t",op.c_float(-9999.))
+            varsToKeep['HWW_Mass']        = self.HLL.HWW_simple(jet3.p4,jet4.p4,lepton.p4,MET).M()        if self.args.Hbb2Wj else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['HWW_Simple_Mass'] = self.HLL.HWW_met_simple(jet3.p4,jet4.p4,lepton.p4,MET.p4).M() if self.args.Hbb2Wj else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['HWW_dR']          = self.HLL.dR_Hww(jet3.p4,jet4.p4,lepton.p4,MET)                if self.args.Hbb2Wj else op.static_cast("Float_t",op.c_float(0.))
+            varsToKeep['cosThetaS_Wjj_simple']    = self.HLL.comp_cosThetaS(jet3.p4, jet4.p4)             if self.args.Hbb2Wj else op.static_cast("Float_t",op.c_float(0.))
             varsToKeep['cosThetaS_WW_simple_met'] = self.HLL.comp_cosThetaS(self.HLL.Wjj_simple(jet3.p4,jet4.p4), 
-                                                                            self.HLL.Wlep_met_simple(lepton.p4, MET.p4))               if self.args.Hbb2Wj else op.static_cast("Float_t",op.c_float(-9999.))
+                                                                            self.HLL.Wlep_met_simple(lepton.p4, MET.p4))               if self.args.Hbb2Wj else op.static_cast("Float_t",op.c_float(0.))
             varsToKeep['cosThetaS_HH_simple_met'] = self.HLL.comp_cosThetaS(jet1.p4 + jet2.p4, 
-                                                                            self.HLL.HWW_met_simple(jet3.p4,jet4.p4,lepton.p4,MET.p4)) if self.args.Hbb2Wj else op.static_cast("Float_t",op.c_float(-9999.))
+                                                                            self.HLL.HWW_met_simple(jet3.p4,jet4.p4,lepton.p4,MET.p4)) if self.args.Hbb2Wj else op.static_cast("Float_t",op.c_float(0.))
                 
+
+            if self.args.Hbb2Wj:
+                varsToKeep['jetMinDR']    = self.HLL.MinDiJetDRTight(jet1,jet2,jet3,jet4)
+                varsToKeep['jetLepMinDR'] = self.HLL.MinDR_lep4j(lepton, jet1, jet2, jet3, jet4) 
+                varsToKeep['HT2']         = self.HLL.HT2_l4jmet(lepton, jet1, jet2,jet3,jet4,MET)
+                varsToKeep['HT2R']        = self.HLL.HT2R_l4jmet(lepton, jet1, jet2, jet3, jet4,MET)
+                varsToKeep['MT_W1W2']     = self.HLL.MT_W1W2_ljj(lepton,jet3,jet4,MET)
+                varsToKeep['JPAcat']      = op.c_int(21)                
 
             if self.args.Hbb1Wj:
-                varsToKeep['jetMinDR']   = self.HLL.MinDiJetDRLoose(jet1,jet2,jet3)
+                varsToKeep['jetMinDR']    = self.HLL.MinDiJetDRLoose(jet1,jet2,jet3)
                 varsToKeep['jetLepMinDR'] = self.HLL.MinDR_lep3j(lepton,jet1,jet2,jet3) 
-                varsToKeep['HT2'] = self.HLL.HT2_l3jmet(lepton,jet1,jet2,jet3,MET)
-                varsToKeep['HT2R'] = self.HLL.HT2R_l3jmet(lepton,jet1,jet2,jet3,MET)
-                varsToKeep['MT_W1W2'] = self.HLL.MT_W1W2_lj(lepton,jet3,MET)
-                
-            if self.args.Hbb2Wj:
-                varsToKeep['jetMinDR']   = self.HLL.MinDiJetDRTight(jet1,jet2,jet3,jet4)
-                varsToKeep['jetLepMinDR'] = self.HLL.MinDR_lep4j(lepton, jet1, jet2, jet3, jet4) 
-                varsToKeep['HT2'] = self.HLL.HT2_l4jmet(lepton, jet1, jet2,jet3,jet4,MET)
-                varsToKeep['HT2R'] = self.HLL.HT2R_l4jmet(lepton, jet1, jet2, jet3, jet4,MET)
-                varsToKeep['MT_W1W2'] = self.HLL.MT_W1W2_ljj(lepton,jet3,jet4,MET)
+                varsToKeep['HT2']         = self.HLL.HT2_l3jmet(lepton,jet1,jet2,jet3,MET)
+                varsToKeep['HT2R']        = self.HLL.HT2R_l3jmet(lepton,jet1,jet2,jet3,MET)
+                varsToKeep['MT_W1W2']     = self.HLL.MT_W1W2_lj(lepton,jet3,MET)
+                varsToKeep['JPAcat']      = op.c_int(22)                
+
+            if self.args.Hbb0Wj:
+                varsToKeep['jetMinDR']    = op.static_cast("Float_t",op.c_float(0.))
+                varsToKeep['jetLepMinDR'] = op.static_cast("Float_t",op.c_float(0.)) 
+                varsToKeep['HT2']         = op.static_cast("Float_t",op.c_float(0.))
+                varsToKeep['HT2R']        = op.static_cast("Float_t",op.c_float(0.))
+                varsToKeep['MT_W1W2']     = op.static_cast("Float_t",op.c_float(0.))
+                varsToKeep['JPAcat']      = op.c_int(23)                
+
 
                 #----- Additional variables -----#
-        varsToKeep["MC_weight"] = t.genWeight
+        varsToKeep["MC_weight"]    = t.genWeight
         varsToKeep['total_weight'] = selObj.sel.weight
 
         #return leptonSel.sel, varsToKeep

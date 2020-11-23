@@ -45,13 +45,13 @@ class highlevelLambdas:
         self.HT2 = lambda l1,l2,j1,j2,met : op.sqrt(op.pow(met.pt*op.cos(met.phi)+l1.p4.Px()+l2.p4.Px(),2)+op.pow(met.pt*op.sin(met.phi)+l1.p4.Py()+l2.p4.Py(),2)) + op.abs((j1.p4+j2.p4).Pt())
         self.HT2R = lambda l1,l2,j1,j2,met : self.HT2(met,l1,l2,j1,j2)/(met.pt+l1.p4.Pt()+l2.p4.Pt()+j1.p4.Pt()+j2.p4.Pt())
         self.HT2_l1jmet  = lambda l,j1,met : op.sqrt(op.pow(met.pt*op.cos(met.phi)+l.p4.Px(),2)+op.pow(met.pt*op.sin(met.phi)+l.p4.Py(),2)) + op.abs(j1.p4.Pt())
-        self.HT2R_l1jmet = lambda l,j1,met : self.HT2_l2jmet(met,l,j1)/(met.pt+l.p4.Pt()+j1.p4.Pt())
+        self.HT2R_l1jmet = lambda l,j1,met : self.HT2_l1jmet(l,j1,met)/(met.pt+l.p4.Pt()+j1.p4.Pt())
         self.HT2_l2jmet  = lambda l,j1,j2,met : op.sqrt(op.pow(met.pt*op.cos(met.phi)+l.p4.Px(),2)+op.pow(met.pt*op.sin(met.phi)+l.p4.Py(),2)) + op.abs((j1.p4+j2.p4).Pt())
-        self.HT2R_l2jmet = lambda l,j1,j2,met : self.HT2_l2jmet(met,l,j1,j2)/(met.pt+l.p4.Pt()+j1.p4.Pt()+j2.p4.Pt())
+        self.HT2R_l2jmet = lambda l,j1,j2,met : self.HT2_l2jmet(l,j1,j2,met)/(met.pt+l.p4.Pt()+j1.p4.Pt()+j2.p4.Pt())
         self.HT2_l3jmet  = lambda l,j1,j2,j3,met : op.sqrt(op.pow(met.pt*op.cos(met.phi)+l.p4.Px(),2)+op.pow(met.pt*op.sin(met.phi)+l.p4.Py(),2)) + op.abs((j1.p4+j2.p4+j3.p4).Pt())
-        self.HT2R_l3jmet = lambda l,j1,j2,j3,met : self.HT2_l3jmet(met,l,j1,j2,j3)/(met.pt+l.p4.Pt()+j1.p4.Pt()+j2.p4.Pt()+j3.p4.Pt())
+        self.HT2R_l3jmet = lambda l,j1,j2,j3,met : self.HT2_l3jmet(l,j1,j2,j3,met)/(met.pt+l.p4.Pt()+j1.p4.Pt()+j2.p4.Pt()+j3.p4.Pt())
         self.HT2_l4jmet  = lambda l,j1,j2,j3,j4,met : op.sqrt(op.pow(met.pt*op.cos(met.phi)+l.p4.Px(),2)+op.pow(met.pt*op.sin(met.phi)+l.p4.Py(),2)) + op.abs((j1.p4+j2.p4+j3.p4+j4.p4).Pt())
-        self.HT2R_l4jmet = lambda l,j1,j2,j3,j4,met : self.HT2_l4jmet(met,l,j1,j2,j3,j4)/(met.pt+l.p4.Pt()+j1.p4.Pt()+j2.p4.Pt()+j3.p4.Pt()+j4.p4.Pt())
+        self.HT2R_l4jmet = lambda l,j1,j2,j3,j4,met : self.HT2_l4jmet(l,j1,j2,j3,j4,met)/(met.pt+l.p4.Pt()+j1.p4.Pt()+j2.p4.Pt()+j3.p4.Pt()+j4.p4.Pt())
         
         #min j1j2DR
         self.MinDiJetDRLoose = lambda j1,j2,j3: op.min(op.min(op.deltaR(j1.p4,j2.p4), op.deltaR(j2.p4,j3.p4)), op.deltaR(j1.p4,j3.p4))
@@ -86,14 +86,14 @@ class highlevelLambdas:
         neg   = lambda visP4, met : (-B(visP4, met) - op.sqrt(D(visP4, met)))/(2.*A(visP4))
         neuPz = lambda visP4, met : (op.switch(D(visP4, met) < 0., -B(visP4, met)/(2*A(visP4)), op.switch(op.abs(pos(visP4, met)) < op.abs(neg(visP4, met)), pos(visP4, met), neg(visP4, met))))
         # - - - - - - - - - - - - - - - - - - - - - #
-        neuP4 = lambda visP4, met : op._to.Construct("ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float> >", 
-                                                         (met.p4.Px(), 
-                                                          met.p4.Py(), 
-                                                          neuPz(visP4, met), 
-                                                          op.sqrt(op.pow(met.p4.Px(),2)+op.pow(met.p4.Py(),2)+op.pow(neuPz(visP4, met),2)))).result
+        self.neuP4 = lambda visP4, met : op._to.Construct("ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<float> >", 
+                                                          (met.p4.Px(), 
+                                                           met.p4.Py(), 
+                                                           neuPz(visP4, met), 
+                                                           op.sqrt(op.pow(met.p4.Px(),2)+op.pow(met.p4.Py(),2)+op.pow(neuPz(visP4, met),2)))).result
         
         # P4 of W1 (l,neu)
-        self.Wlep_simple = lambda wj1P4,wj2P4,lepP4,met : lepP4 + neuP4(wj1P4+wj2P4+lepP4, met)
+        self.Wlep_simple = lambda wj1P4,wj2P4,lepP4,met : lepP4 + self.neuP4(wj1P4+wj2P4+lepP4, met)
         # P4 of W2 (j,j)
         self.Wjj_simple  = lambda j1P4,j2P4 : j1P4 + j2P4 
         # DR_HadW_bJet
