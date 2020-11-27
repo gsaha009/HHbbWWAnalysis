@@ -1086,7 +1086,7 @@ class SkimmerNanoHHtobbWWSL(BaseNanoHHtobbWW,SkimmerModule):
             varsToKeep['VBFj1j2invM']    = op.switch(op.rng_len(VBFJetPairsJPA) > 0,op.invariant_mass(VBFJetPairsJPA[0][0].p4,  VBFJetPairsJPA[0][1].p4),
                                                      op.static_cast("Float_t",op.c_float(0.)))
             
-            varsToKeep['VBF_tag']         = op.c_int(op.rng_len(self.VBFJetPairs)>0)
+            varsToKeep['VBF_tag']         = op.c_int(op.rng_len(VBFJetPairsJPA)>0)
 
 
             if self.args.Hbb2Wj:
@@ -1095,7 +1095,7 @@ class SkimmerNanoHHtobbWWSL(BaseNanoHHtobbWW,SkimmerModule):
                 varsToKeep['HT2']         = self.HLL.HT2_l4jmet(lepton, jet1, jet2,jet3,jet4,MET)
                 varsToKeep['HT2R']        = self.HLL.HT2R_l4jmet(lepton, jet1, jet2, jet3, jet4,MET)
                 varsToKeep['MT_W1W2']     = self.HLL.MT_W1W2_ljj(lepton,jet3,jet4,MET)
-                varsToKeep['JPAcat']      = op.c_int(21)                
+                varsToKeep['JPAcat']      = op.c_int(8)                
 
             if self.args.Hbb1Wj:
                 varsToKeep['jetMinDR']    = self.HLL.MinDiJetDRLoose(jet1,jet2,jet3)
@@ -1103,7 +1103,7 @@ class SkimmerNanoHHtobbWWSL(BaseNanoHHtobbWW,SkimmerModule):
                 varsToKeep['HT2']         = self.HLL.HT2_l3jmet(lepton,jet1,jet2,jet3,MET)
                 varsToKeep['HT2R']        = self.HLL.HT2R_l3jmet(lepton,jet1,jet2,jet3,MET)
                 varsToKeep['MT_W1W2']     = self.HLL.MT_W1W2_lj(lepton,jet3,MET)
-                varsToKeep['JPAcat']      = op.c_int(22)                
+                varsToKeep['JPAcat']      = op.c_int(9)                
 
             if self.args.Hbb0Wj:
                 varsToKeep['jetMinDR']    = op.static_cast("Float_t",op.c_float(0.))
@@ -1111,7 +1111,7 @@ class SkimmerNanoHHtobbWWSL(BaseNanoHHtobbWW,SkimmerModule):
                 varsToKeep['HT2']         = op.static_cast("Float_t",op.c_float(0.))
                 varsToKeep['HT2R']        = op.static_cast("Float_t",op.c_float(0.))
                 varsToKeep['MT_W1W2']     = op.static_cast("Float_t",op.c_float(0.))
-                varsToKeep['JPAcat']      = op.c_int(23)                
+                varsToKeep['JPAcat']      = op.c_int(10)                
 
 
                 #----- Additional variables -----#
