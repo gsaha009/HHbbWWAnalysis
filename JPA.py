@@ -266,8 +266,6 @@ def findJPACategoryBoosted (self, selObj, lepton, muons, electrons, fatJets, jet
     JPAMaxScoreList = []
     bestCombo_per_cat = []
     
-    print (nodeList)
-        
     combo2     = op.combine(jets, N=2, pred=lambda j1,j2 : j1.pt > j2.pt, samePred=lambda j1,j2 : j1.idx != j2.idx)
     fakeCombo2 = op.combine(jets, N=2, pred=lambda j1,j2 : j1.pt > j2.pt, samePred=None)
 
@@ -283,8 +281,8 @@ def findJPACategoryBoosted (self, selObj, lepton, muons, electrons, fatJets, jet
             maxScore = op.switch(best.idx != -1, best.idx.op.this.result.second, op.c_float(-1.))
         else:
             best = op.rng_max_element_by(fakeCombo2, lambdaFunc)
-            #maxScore = best.idx.op.this.result.second
-            maxScore = op.switch(best.idx != -1, best.idx.op.this.result.second, op.c_float(-1.))
+            maxScore = best.idx.op.this.result.second
+            #maxScore = op.switch(best.idx != -1, best.idx.op.this.result.second, op.c_float(-1.))
 
         JPAMaxScoreList.append(op.pow((1.0 + op.sqrt((1 - maxScore)/(1 + maxScore))), -1))
         bestCombo_per_cat.append(best)

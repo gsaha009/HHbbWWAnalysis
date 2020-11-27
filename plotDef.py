@@ -2022,21 +2022,6 @@ def makeJPAtestPlots(sel, JPAscorePerCat, JPAjetIdxsPerCat, JPAnodeList, channel
                              plotopts = channelLabel))
     
 
-    #newSel = copy(sel)
-    '''
-    for i, node in enumerate(nodeList):
-        plotSel = copy(sel)
-        plotSel.selName += '%s'%node
-        #plotSel.yieldTitle += " in %s node"%node
-        #plotSel.refine(cut = [maxIdx == op.c_int(i)])
- 
-        plots.append(Plot.make1D("%s_%s_BDTScoreFor%s"%(channel,plotSel.selName,node),
-                                 scorePerCat[i],
-                                 plotSel.sel,
-                                 EquidistantBinning(50,-1.,1.),
-                                 xTitle = 'BDT output %s'%node,
-                                 plotopts = channelLabel))
-    '''
     return plots
 
 
