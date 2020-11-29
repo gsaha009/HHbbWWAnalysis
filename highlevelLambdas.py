@@ -42,16 +42,42 @@ class highlevelLambdas:
         self.MinDR_lep4j = lambda lep,j1,j2,j3,j4 : op.min(op.min(op.min(op.deltaR(lep.p4,j1.p4),op.deltaR(lep.p4,j2.p4)),op.deltaR(lep.p4,j3.p4)),op.deltaR(lep.p4,j4.p4))
 
         # Higgs related variables #
-        self.HT2 = lambda l1,l2,j1,j2,met : op.sqrt(op.pow(met.pt*op.cos(met.phi)+l1.p4.Px()+l2.p4.Px(),2)+op.pow(met.pt*op.sin(met.phi)+l1.p4.Py()+l2.p4.Py(),2)) + op.abs((j1.p4+j2.p4).Pt())
-        self.HT2R = lambda l1,l2,j1,j2,met : self.HT2(met,l1,l2,j1,j2)/(met.pt+l1.p4.Pt()+l2.p4.Pt()+j1.p4.Pt()+j2.p4.Pt())
-        self.HT2_l1jmet  = lambda l,j1,met : op.sqrt(op.pow(met.pt*op.cos(met.phi)+l.p4.Px(),2)+op.pow(met.pt*op.sin(met.phi)+l.p4.Py(),2)) + op.abs(j1.p4.Pt())
-        self.HT2R_l1jmet = lambda l,j1,met : self.HT2_l1jmet(l,j1,met)/(met.pt+l.p4.Pt()+j1.p4.Pt())
-        self.HT2_l2jmet  = lambda l,j1,j2,met : op.sqrt(op.pow(met.pt*op.cos(met.phi)+l.p4.Px(),2)+op.pow(met.pt*op.sin(met.phi)+l.p4.Py(),2)) + op.abs((j1.p4+j2.p4).Pt())
-        self.HT2R_l2jmet = lambda l,j1,j2,met : self.HT2_l2jmet(l,j1,j2,met)/(met.pt+l.p4.Pt()+j1.p4.Pt()+j2.p4.Pt())
-        self.HT2_l3jmet  = lambda l,j1,j2,j3,met : op.sqrt(op.pow(met.pt*op.cos(met.phi)+l.p4.Px(),2)+op.pow(met.pt*op.sin(met.phi)+l.p4.Py(),2)) + op.abs((j1.p4+j2.p4+j3.p4).Pt())
-        self.HT2R_l3jmet = lambda l,j1,j2,j3,met : self.HT2_l3jmet(l,j1,j2,j3,met)/(met.pt+l.p4.Pt()+j1.p4.Pt()+j2.p4.Pt()+j3.p4.Pt())
-        self.HT2_l4jmet  = lambda l,j1,j2,j3,j4,met : op.sqrt(op.pow(met.pt*op.cos(met.phi)+l.p4.Px(),2)+op.pow(met.pt*op.sin(met.phi)+l.p4.Py(),2)) + op.abs((j1.p4+j2.p4+j3.p4+j4.p4).Pt())
-        self.HT2R_l4jmet = lambda l,j1,j2,j3,j4,met : self.HT2_l4jmet(l,j1,j2,j3,j4,met)/(met.pt+l.p4.Pt()+j1.p4.Pt()+j2.p4.Pt()+j3.p4.Pt()+j4.p4.Pt())
+        #self.HT2 = lambda l1,l2,j1,j2,met : op.sqrt(op.pow(met.pt*op.cos(met.phi)+l1.p4.Px()+l2.p4.Px(),2)+op.pow(met.pt*op.sin(met.phi)+l1.p4.Py()+l2.p4.Py(),2)) + op.abs((j1.p4+j2.p4).Pt())
+        #self.HT2R = lambda l1,l2,j1,j2,met : self.HT2(met,l1,l2,j1,j2)/(met.pt+l1.p4.Pt()+l2.p4.Pt()+j1.p4.Pt()+j2.p4.Pt())
+        #self.HT2_l1jmet  = lambda l,j1,met : op.sqrt(op.pow(met.pt*op.cos(met.phi)+l.p4.Px(),2)+op.pow(met.pt*op.sin(met.phi)+l.p4.Py(),2)) + op.abs(j1.p4.Pt())
+        #self.HT2R_l1jmet = lambda l,j1,met : self.HT2_l1jmet(l,j1,met)/(met.pt+l.p4.Pt()+j1.p4.Pt())
+        #self.HT2_l2jmet  = lambda l,j1,j2,met : op.sqrt(op.pow(met.pt*op.cos(met.phi)+l.p4.Px(),2)+op.pow(met.pt*op.sin(met.phi)+l.p4.Py(),2)) + op.abs((j1.p4+j2.p4).Pt())
+        #self.HT2R_l2jmet = lambda l,j1,j2,met : self.HT2_l2jmet(l,j1,j2,met)/(met.pt+l.p4.Pt()+j1.p4.Pt()+j2.p4.Pt())
+        #self.HT2_l3jmet  = lambda l,j1,j2,j3,met : op.sqrt(op.pow(met.pt*op.cos(met.phi)+l.p4.Px(),2)+op.pow(met.pt*op.sin(met.phi)+l.p4.Py(),2)) + op.abs((j1.p4+j2.p4+j3.p4).Pt())
+
+        # 0b
+        self.HT2_0b  = lambda l,met : op.abs((met.p4+l.p4).Pt())
+        self.HT2R_0b = lambda l,met : self.HT2_0b(l,met)/(met.pt+l.pt)
+
+        # 1b0Wj
+        self.HT2_1b0Wj  = lambda l,j1,met : op.abs((met.p4+l.p4).Pt()) + j1.pt
+        self.HT2R_1b0Wj = lambda l,j1,met : self.HT2_1b0Wj(l,j1,met)/(met.pt+l.pt+j1.pt)
+
+        # 1b1Wj
+        self.HT2_1b1Wj  = lambda l,j1,j3,met : op.abs((met.p4+l.p4+j3.p4).Pt()) + j1.pt
+        self.HT2R_1b1Wj = lambda l,j1,j3,met : self.HT2_1b1Wj(l,j1,j3,met)/(met.pt+l.pt+j1.pt+j3.pt)
+
+        #2b0Wj
+        self.HT2_2b0Wj  = lambda l,j1,j2,met : op.abs((met.p4+l.p4).Pt()) + op.abs((j1.p4+j2.p4).Pt())
+        self.HT2R_2b0Wj = lambda l,j1,j2,met : self.HT2_2b0Wj(l,j1,j2,met)/(met.pt+l.pt+j1.pt+j2.pt)
+
+        # 1b2Wj
+        self.HT2_1b2Wj  = lambda l,j1,j3,j4,met : op.abs((met.p4+l.p4+j3.p4+j4.p4).Pt()) + j1.pt
+        self.HT2R_1b2Wj = lambda l,j1,j3,j4,met : self.HT2_1b2Wj(l,j1,j3,j4,met)/(met.pt+l.pt+j1.pt+j3.pt+j4.pt)
+
+        # 2b1Wj
+        self.HT2_2b1Wj  = lambda l,j1,j2,j3,met : op.abs((met.p4+l.p4+j3.p4).Pt()) + op.abs((j1.p4+j2.p4).Pt())
+        self.HT2R_2b1Wj = lambda l,j1,j2,j3,met : self.HT2_2b1Wj(l,j1,j2,j3,met)/(met.pt+l.pt+j1.pt+j2.pt+j3.pt)
+
+        #self.HT2_l4jmet  = lambda l,j1,j2,j3,j4,met : op.sqrt(op.pow(met.pt*op.cos(met.phi)+l.p4.Px(),2)+op.pow(met.pt*op.sin(met.phi)+l.p4.Py(),2)) + op.abs((j1.p4+j2.p4+j3.p4+j4.p4).Pt())
+        # 2b2Wj
+        self.HT2_2b2Wj  = lambda l,j1,j2,j3,j4,met : op.abs((met.p4+l.p4+j3.p4+j4.p4).Pt()) + op.abs((j1.p4+j2.p4).Pt())
+        self.HT2R_2b2Wj = lambda l,j1,j2,j3,j4,met : self.HT2_2b2Wj(l,j1,j2,j3,j4,met)/(met.pt+l.pt+j1.pt+j2.pt+j3.pt+j4.pt)
         
         #min j1j2DR
         self.MinDiJetDRLoose = lambda j1,j2,j3: op.min(op.min(op.deltaR(j1.p4,j2.p4), op.deltaR(j2.p4,j3.p4)), op.deltaR(j1.p4,j3.p4))
