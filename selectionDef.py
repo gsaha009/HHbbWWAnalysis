@@ -246,14 +246,10 @@ def makeBoostedSelection(self,selObject,copy_sel=False,plot_yield=False):
     selObject.selName += "Boosted"
     selObject.yieldTitle += " + Ak8 jets $\geq 1$ Ak4jets $\geq 1$"
     selObject.refine(cut=[op.rng_len(self.ak8BJets) >= 1, op.rng_len(self.ak4JetsCleanedFromAk8b) >= 1])
-    #selObject.yieldTitle += " + Ak8 jets $\geq 1$"
-    #selObject.refine(cut=[op.rng_len(self.ak8BJets) >= 1])
     if plot_yield:
         selObject.makeYield(self.yieldPlots)
     if copy_sel:
         return selObject
-
-
 
 
 def makeCoarseResolvedSelection(self,selObject,nJet,copy_sel=False,plot_yield=False):

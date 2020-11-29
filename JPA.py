@@ -230,8 +230,8 @@ def findJPACategoryResolved (self, selObj, lepton, muons, electrons, jets, bJets
             best = op.rng_max_element_by(combo2_1b0W_1Wj, lambdaFunc)            ## hack: index of best is first in a pair, with the maximum value as second
             maxScore = best.idx.op.this.result.second
             
-        #JPAMaxScoreList.append(op.pow((1.0 + op.sqrt((1 - maxScore)/(1 + maxScore))), -1))
-        JPAMaxScoreList.append(maxScore)
+        JPAMaxScoreList.append(op.pow((1.0 + op.sqrt((1 - maxScore)/(1 + maxScore))), -1))
+        #JPAMaxScoreList.append(maxScore)
         bestCombo_per_cat.append(best)
 
     evtCat = makeOddEvenEvaluator(event%2, modelPathDict.get('evCat')[1], modelPathDict.get('evCat')[0], mvaType="TMVA")
@@ -255,7 +255,7 @@ def findJPACategoryResolved (self, selObj, lepton, muons, electrons, jets, bJets
         if i < 6:
             selObjJPAjetsIdxDict[node] = [outSelObj, bestCombo_per_cat[i]]
         else:
-            selObjJPAjetsIdxDict[node] = [outSelObj, bestCombo_per_cat[i-1]]
+            selObjJPAjetsIdxDict[node] = [outSelObj, bestCombo_per_cat[i-1]] # bestCombo_per_cat[i-1] :: Obsolete. 
     return JPAMaxScoreList, evtCatOutList, selObjJPAjetsIdxDict
     
 # ----------------------------------- Boosted -------------------------------------- #
@@ -267,7 +267,7 @@ def findJPACategoryBoosted (self, selObj, lepton, muons, electrons, fatJets, jet
     bestCombo_per_cat = []
     
     combo2     = op.combine(jets, N=2, pred=lambda j1,j2 : j1.pt > j2.pt, samePred=lambda j1,j2 : j1.idx != j2.idx)
-    fakeCombo2 = op.combine(jets, N=2, pred=lambda j1,j2 : j1.pt > j2.pt, samePred=None)
+    fakeCombo2 = op.combine(jets, N=2, pred=lambda j1,j2 : j1.pt >= j2.pt, samePred=None)
 
     funckeys = [k for k in JPAfuncDict.keys()]
     for idx, func in enumerate(funckeys):
@@ -281,10 +281,12 @@ def findJPACategoryBoosted (self, selObj, lepton, muons, electrons, fatJets, jet
             maxScore = op.switch(best.idx != -1, best.idx.op.this.result.second, op.c_float(-1.))
         else:
             best = op.rng_max_element_by(fakeCombo2, lambdaFunc)
+            #best = op.rng_max_element_by(combo2, lambdaFunc)
             maxScore = best.idx.op.this.result.second
             #maxScore = op.switch(best.idx != -1, best.idx.op.this.result.second, op.c_float(-1.))
 
         JPAMaxScoreList.append(op.pow((1.0 + op.sqrt((1 - maxScore)/(1 + maxScore))), -1))
+        #JPAMaxScoreList.append(maxScore)
         bestCombo_per_cat.append(best)
 
     evtCat = makeOddEvenEvaluator(event%2, modelPathDict.get('evCat')[1], modelPathDict.get('evCat')[0], mvaType="TMVA")
@@ -306,7 +308,7 @@ def findJPACategoryBoosted (self, selObj, lepton, muons, electrons, fatJets, jet
         if i < 2:
             selObjJPAjetsIdxDict[node] = [outSelObj, bestCombo_per_cat[i]]
         else:
-            selObjJPAjetsIdxDict[node] = [outSelObj, bestCombo_per_cat[i-1]]
+            selObjJPAjetsIdxDict[node] = [outSelObj, bestCombo_per_cat[i-1]] # bestCombo_per_cat[i-1] : Obsolete
 
     return JPAMaxScoreList, JPAL2outList, selObjJPAjetsIdxDict
     

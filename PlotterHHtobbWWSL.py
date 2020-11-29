@@ -289,7 +289,8 @@ class PlotterNanoHHtobbWWSL(BaseNanoHHtobbWW,DataDrivenBackgroundHistogramsModul
                                                                                    boostedModelDict, t.event, self.HLL, BoostedJPANodeList,
                                                                                    plot_yield=True)
             foo,bar,MuBoostedSelObjJetsIdxPerJpaNodeDict = findJPACategoryBoosted (self, MuSelObjBoosted, MuColl[0], self.muonsPreSel, self.electronsPreSel, 
-                                                                                   self.ak8BJets, self.ak4JetsCleanedFromAk8b, self.ak4BJetsLoose, self.ak4BJets, self.corrMET, 
+                                                                                   self.ak8BJets, self.ak4JetsCleanedFromAk8b, self.ak4BJetsLoose, 
+                                                                                   self.ak4BJets, self.corrMET, 
                                                                                    boostedModelDict, t.event, self.HLL, BoostedJPANodeList, plot_yield=True)
 
 

@@ -152,54 +152,54 @@ One lepton and and one jet argument must be specified in addition to the require
         parser.add_argument("--Res2b2Wj", 
                                 action      = "store_true",
                                 default     = False,
-                                help        = "Produce the plots/skim for the exclusive loose resolved category with no btagged jet")
+                                help        = "Produce the plots/skim for the exclusive 2b2Wj JPA category")
         parser.add_argument("--Res2b1Wj", 
                                 action      = "store_true",
                                 default     = False,
-                                help        = "Produce the plots/skim for the exclusive loose resolved category with no btagged jet")
+                                help        = "Produce the plots/skim for the exclusive 2b1Wj JPA category")
         parser.add_argument("--Res2b0Wj", 
                                 action      = "store_true",
                                 default     = False,
-                                help        = "Produce the plots/skim for the exclusive loose resolved category with no btagged jet")
+                                help        = "Produce the plots/skim for the exclusive 2b0Wj JPA category")
         parser.add_argument("--Res1b2Wj", 
                                 action      = "store_true",
                                 default     = False,
-                                help        = "Produce the plots/skim for the exclusive loose resolved category with no btagged jet")
+                                help        = "Produce the plots/skim for the exclusive 1b2Wj JPA category")
         parser.add_argument("--Res1b1Wj", 
                                 action      = "store_true",
                                 default     = False,
-                                help        = "Produce the plots/skim for the exclusive loose resolved category with no btagged jet")
+                                help        = "Produce the plots/skim for the exclusive 1b1Wj JPA category")
         parser.add_argument("--Res1b0Wj", 
                                 action      = "store_true",
                                 default     = False,
-                                help        = "Produce the plots/skim for the exclusive loose resolved category with no btagged jet")
+                                help        = "Produce the plots/skim for the exclusive 1b0Wj JPA category")
         parser.add_argument("--Res0b", 
                                 action      = "store_true",
                                 default     = False,
-                                help        = "Produce the plots/skim for the exclusive loose resolved category with no btagged jet")
+                                help        = "Produce the plots/skim for the exclusive 0b JPA category")
 
         # Semi-Boosted
         parser.add_argument("--Hbb2Wj", 
                                 action      = "store_true",
                                 default     = False,
-                                help        = "Produce the plots/skim for the exclusive loose resolved category with no btagged jet")
+                                help        = "Produce the plots/skim for the exclusive Hbb2Wj JPA category")
         parser.add_argument("--Hbb1Wj", 
                                 action      = "store_true",
                                 default     = False,
-                                help        = "Produce the plots/skim for the exclusive loose resolved category with no btagged jet")
+                                help        = "Produce the plots/skim for the exclusive Hbb1Wj JPA category")
         parser.add_argument("--Hbb0Wj", 
                                 action      = "store_true",
                                 default     = False,
-                                help        = "Produce the plots/skim for the exclusive loose resolved category with no btagged jet")
+                                help        = "Produce the plots/skim for the exclusive Hbb0Wj JPA category")
 
         parser.add_argument("--Resolved", 
                                 action      = "store_true",
                                 default     = False,
-                                help        = "Produce the plots/skim for the exclusive loose resolved category with no btagged jet")
+                                help        = "Produce the plots/skim for all JPA resolved categories")
         parser.add_argument("--Boosted", 
                                 action      = "store_true",
                                 default     = False,
-                                help        = "Produce the plots/skim for the exclusive loose resolved category with no btagged jet")
+                                help        = "Produce the plots/skim for all JPA boosted categories")
 
         parser.add_argument("--Boosted0Btag", 
                                 action      = "store_true",
@@ -320,7 +320,9 @@ One lepton and and one jet argument must be specified in addition to the require
         # Check if basic synchronization is required (no corrections and triggers) #
         self.inclusive_sel = ((self.args.Synchronization 
                                #and not any([self.args.__dict__[key] for key in['Preselected', 'Fakeable', 'Tight', 'FakeExtrapolation']]) \
-                               and not any([self.args.__dict__[key] for key in['Ak4', 'Ak8', 'Resolved0Btag', 'Resolved1Btag', 'Resolved2Btag', 'Boosted0Btag','Boosted1Btag','Resolved','Boosted','Res2b2Wj','Res2b1Wj','Res2b0Wj','Res1b2Wj','Res1b1Wj','Res1b1Wj','Res0b','Hbb2Wj','Hbb1Wj','Hbb0Wj']]) \
+                               and not any([self.args.__dict__[key] for key in['Ak4', 'Ak8', 'Resolved0Btag', 'Resolved1Btag', 'Resolved2Btag', 'Boosted0Btag','Boosted1Btag',
+                                                                               'Resolved','Boosted','Res2b2Wj','Res2b1Wj','Res2b0Wj','Res1b2Wj','Res1b1Wj','Res1b1Wj','Res0b',
+                                                                               'Hbb2Wj','Hbb1Wj','Hbb0Wj']]) \
                                and (self.args.Channel is None or self.args.Channel=='None')) \
                               # No channel selection
                               # None is local mode, "None" in distributed mode
@@ -725,11 +727,10 @@ One lepton and and one jet argument must be specified in addition to the require
 
         # MET corrections #
         MET = t.MET if era != "2017" else t.METFixEE2017
-        #if not self.inclusive_sel:
-        #    self.corrMET = METcorrection(MET,t.PV,sample,era,self.is_MC) # Flatness correction might not be needed
-        #else:
-        #    self.corrMET = MET
-        self.corrMET = MET
+        if not self.args.Synchronization:
+            self.corrMET = METcorrection(MET,t.PV,sample,era,self.is_MC) # Flatness correction might not be needed
+        else:
+            self.corrMET = MET
 
         #############################################################################
         #                      Lepton Lambdas Variables                             #
@@ -1036,9 +1037,46 @@ One lepton and and one jet argument must be specified in addition to the require
             self.lambda_cleanAk4Jets = lambda j : op.AND(op.NOT(op.rng_any(self.electronsTightSel, lambda ele : op.deltaR(j.p4, ele.p4) <= 0.4 )), 
                                                          op.NOT(op.rng_any(self.muonsTightSel, lambda mu : op.deltaR(j.p4, mu.p4) <= 0.4 )))
         elif self.args.TTHIDLoose or self.args.TTHIDTight:
-            self.lambda_cleanAk4Jets = lambda j : op.AND(op.NOT(op.rng_any(self.electronsFakeSel, lambda ele : op.deltaR(j.p4, ele.p4) <= 0.4 )), 
-                                                         op.NOT(op.rng_any(self.muonsFakeSel, lambda mu : op.deltaR(j.p4, mu.p4) <= 0.4 )))
-            # remove jets within cone of DR<0.4 of preselected electrons and muons
+            if channel == "SL":
+                def returnLambdaCleaningWithRespectToLeadingLepton(DR):
+                   return lambda j : op.multiSwitch(
+                            (op.AND(op.rng_len(self.electronsFakeSel) >= 1, op.rng_len(self.muonsFakeSel) == 0), op.deltaR(j.p4, self.electronsFakeSel[0].p4)>=DR),
+                            (op.AND(op.rng_len(self.electronsFakeSel) == 0, op.rng_len(self.muonsFakeSel) >= 1), op.deltaR(j.p4, self.muonsFakeSel[0].p4)>=DR),
+                            (op.AND(op.rng_len(self.muonsFakeSel) >= 1, op.rng_len(self.electronsFakeSel) >= 1),
+                                   op.switch(self.electron_conept[self.electronsFakeSel[0].idx] >= self.muon_conept[self.muonsFakeSel[0].idx],
+                                             op.deltaR(j.p4, self.electronsFakeSel[0].p4)>=DR,
+                                             op.deltaR(j.p4, self.muonsFakeSel[0].p4)>=DR)),
+                            op.c_bool(True))
+                self.lambda_cleanAk4Jets = returnLambdaCleaningWithRespectToLeadingLepton(0.4)
+
+            if channel == 'DL':
+                def returnLambdaCleaningWithRespectToLeadingLeptons(DR):
+                    return lambda j : op.multiSwitch(
+                          (op.AND(op.rng_len(self.electronsFakeSel) >= 2,op.rng_len(self.muonsFakeSel) == 0), 
+                              op.AND(op.deltaR(j.p4, self.electronsFakeSel[0].p4)>=DR, op.deltaR(j.p4, self.electronsFakeSel[1].p4)>=DR)),
+                          (op.AND(op.rng_len(self.electronsFakeSel) == 0,op.rng_len(self.muonsFakeSel) >= 2), 
+                              op.AND(op.deltaR(j.p4, self.muonsFakeSel[0].p4)>=DR, op.deltaR(j.p4, self.muonsFakeSel[1].p4)>=DR)),
+                          (op.AND(op.rng_len(self.electronsFakeSel) >= 1,op.rng_len(self.muonsFakeSel) >= 1),
+                              op.switch(self.electron_conept[self.electronsFakeSel[0].idx] >= self.muon_conept[self.muonsFakeSel[0].idx],
+                                        # Electron is leading #
+                                        op.multiSwitch((op.rng_len(self.electronsFakeSel) >= 2, op.rng_len(self.muonsFakeSel) == 1,
+                                                            op.AND(op.deltaR(j.p4, self.electronsFakeSel[0].p4)>=DR, op.deltaR(j.p4, self.electronsFakeSel[1].p4)>=DR)),
+                                                       (op.rng_len(self.electronsFakeSel) == 1, op.rng_len(self.muonsFakeSel) >= 2,
+                                                            op.AND(op.deltaR(j.p4, self.electronsFakeSel[0].p4)>=DR, op.deltaR(j.p4, self.muonsFakeSel[0].p4)>=DR)),
+                                                       op.switch(self.electron_conept[self.electronsFakeSel[1].idx] >= self.muon_conept[self.muonsFakeSel[0].idx],
+                                                                 op.AND(op.deltaR(j.p4, self.electronsFakeSel[0].p4)>=DR, op.deltaR(j.p4, self.electronsFakeSel[1].p4)>=DR),
+                                                                 op.AND(op.deltaR(j.p4, self.electronsFakeSel[0].p4)>=DR, op.deltaR(j.p4, self.muonsFakeSel[0].p4)>=DR))),
+                                        # Muon is leading #
+                                        op.multiSwitch((op.rng_len(self.muonsFakeSel) >= 2, op.rng_len(self.electronsFakeSel) == 1,
+                                                            op.AND(op.deltaR(j.p4, self.muonsFakeSel[0].p4)>=DR, op.deltaR(j.p4, self.muonsFakeSel[1].p4)>=DR)),
+                                                       (op.rng_len(self.muonsFakeSel) == 1, op.rng_len(self.electronsFakeSel) >= 2,
+                                                            op.AND(op.deltaR(j.p4, self.muonsFakeSel[0].p4)>=DR, op.deltaR(j.p4, self.electronsFakeSel[0].p4)>=DR)),
+                                                       op.switch(self.muon_conept[self.muonsFakeSel[1].idx] >= self.electron_conept[self.electronsFakeSel[0].idx],
+                                                                 op.AND(op.deltaR(j.p4, self.muonsFakeSel[0].p4)>=DR, op.deltaR(j.p4, self.muonsFakeSel[1].p4)>=DR),
+                                                                 op.AND(op.deltaR(j.p4, self.muonsFakeSel[0].p4)>=DR, op.deltaR(j.p4, self.electronsFakeSel[0].p4)>=DR))))),
+                           op.c_bool(True))
+
+                self.lambda_cleanAk4Jets = returnLambdaCleaningWithRespectToLeadingLeptons(0.4)
         else:
             self.lambda_cleanAk4Jets = lambda j : op.c_float(True)
         self.ak4Jets = op.select(self.ak4JetsPreSel,self.lambda_cleanAk4Jets) # Pt ordered
@@ -1059,9 +1097,9 @@ One lepton and and one jet argument must be specified in addition to the require
             self.lambda_ak4Btag =   lambda jet    : jet.btagDeepFlavB > 0.2770
             self.lambda_ak4NoBtag = lambda jet    : jet.btagDeepFlavB <= 0.2770
 
-        self.ak4BJets     = op.select(self.ak4Jets, self.lambda_ak4Btag)
+        self.ak4BJets          = op.select(self.ak4Jets, self.lambda_ak4Btag)
         self.ak4BJetsLoose     = op.select(self.ak4Jets, self.lambda_ak4BtagLoose)
-        self.ak4LightJetsByPt = op.select(self.ak4Jets, self.lambda_ak4NoBtag)
+        self.ak4LightJetsByPt  = op.select(self.ak4Jets, self.lambda_ak4NoBtag)
         self.ak4LightJetsByBtagScore = op.sort(self.ak4LightJetsByPt, lambda jet : -jet.btagDeepFlavB)
         # Sorted by btag score because for 0 and 1 btag categories, 
 
@@ -1078,8 +1116,8 @@ One lepton and and one jet argument must be specified in addition to the require
         self.lambda_ak8JetsPreSel = lambda j : op.AND(j.jetId & 1 if era == "2016" else j.jetId & 2, # Jet ID flags bit1 is loose, bit2 is tight, bit3 is tightLepVeto
                                                       j.pt >= 200.,
                                                       op.abs(j.p4.Eta())<= 2.4,
-                                                      op.AND(j.subJet1._idx.result != -1, j.subJet1.pt >= 20. , op.abs(j.subJet1.eta)<=2.4,
-                                                             j.subJet2._idx.result != -1, j.subJet2.pt >= 20. , op.abs(j.subJet2.eta)<=2.4),
+                                                      op.AND(j.subJet1.isValid, j.subJet1.pt >= 20. , op.abs(j.subJet1.eta)<=2.4,
+                                                             j.subJet2.isValid, j.subJet2.pt >= 20. , op.abs(j.subJet2.eta)<=2.4),
                                                              # Fatjet subjets must exist before checking Pt and eta 
                                                       op.AND(j.msoftdrop >= 30, j.msoftdrop <= 210),
                                                       j.tau2/j.tau1 <= 0.75)
@@ -1089,11 +1127,15 @@ One lepton and and one jet argument must be specified in addition to the require
             self.lambda_cleanAk8Jets = lambda j : op.AND(op.NOT(op.rng_any(self.electronsTightSel, lambda ele : op.deltaR(j.p4, ele.p4) <= 0.8 )), 
                                                          op.NOT(op.rng_any(self.muonsTightSel, lambda mu : op.deltaR(j.p4, mu.p4) <= 0.8 )))
         elif self.args.TTHIDLoose or self.args.TTHIDTight:
-            self.lambda_cleanAk8Jets = lambda j : op.AND(op.NOT(op.rng_any(self.electronsFakeSel, lambda ele : op.deltaR(j.p4, ele.p4) <= 0.8 )), 
-                                                         op.NOT(op.rng_any(self.muonsFakeSel, lambda mu : op.deltaR(j.p4, mu.p4) <= 0.8 )))
-        # remove jets within cone of DR<0.8 of preselected electrons and muons
+            if channel == 'SL':
+                self.lambda_cleanAk8Jets = returnLambdaCleaningWithRespectToLeadingLepton(0.8)
+            if channel == 'DL':
+                self.lambda_cleanAk8Jets = returnLambdaCleaningWithRespectToLeadingLeptons(0.8)
+        
+            # remove jets within cone of DR<0.8 of preselected electrons and muons
         else:
             self.lambda_cleanAk8Jets = lambda j : op.c_float(True)
+     
         self.ak8Jets = op.select(self.ak8JetsPreSel,self.lambda_cleanAk8Jets)
 
         ############     Btagging     #############
@@ -1116,8 +1158,9 @@ One lepton and and one jet argument must be specified in addition to the require
         self.ak8BJets = op.select(self.ak8Jets, self.lambda_ak8Btag)
         self.ak8nonBJets = op.select(self.ak8Jets, self.lambda_ak8noBtag)
         # Ak4 Jet Collection cleaned from Ak8b #
-        self.lambda_cleanAk4FromAk8b = lambda ak4j : op.NOT(op.AND(op.rng_len(self.ak8BJets) > 0, op.deltaR(ak4j.p4,self.ak8BJets[0].p4) < 1.2))
-        self.ak4JetsCleanedFromAk8b  = op.select(self.ak4LightJetsByPt, self.lambda_cleanAk4FromAk8b)
+        self.lambda_cleanAk4FromAk8b = lambda ak4j : op.AND(op.rng_len(self.ak8BJets) > 0, op.deltaR(ak4j.p4,self.ak8BJets[0].p4) > 1.2)
+        #self.ak4JetsCleanedFromAk8b  = op.select(self.ak4LightJetsByPt, self.lambda_cleanAk4FromAk8b)
+        self.ak4JetsCleanedFromAk8b  = op.select(self.ak4Jets, self.lambda_cleanAk4FromAk8b)
 
         # used as a BDT input for SemiBoosted category
         self.lambda_btaggedSubJets = lambda fjet : op.switch(self.lambda_ak8Btag_bothSubJets(fjet), op.c_float(2.0), op.c_float(1.0))
@@ -1138,26 +1181,34 @@ One lepton and and one jet argument must be specified in addition to the require
             self.lambda_cleanVBFLeptons = lambda j : op.AND(op.NOT(op.rng_any(self.electronsTightSel, lambda ele : op.deltaR(j.p4, ele.p4) <= 0.4 )), 
                                                             op.NOT(op.rng_any(self.muonsTightSel, lambda mu : op.deltaR(j.p4, mu.p4) <= 0.4 )))
         elif self.args.TTHIDLoose or self.args.TTHIDTight:
-            self.lambda_cleanVBFLeptons = lambda j : op.AND(op.NOT(op.rng_any(self.electronsFakeSel, lambda ele : op.deltaR(j.p4, ele.p4) <= 0.4 )), 
-                                                            op.NOT(op.rng_any(self.muonsFakeSel, lambda mu : op.deltaR(j.p4, mu.p4) <= 0.4 )))
+            if channel == 'SL':
+                self.lambda_cleanVBFLeptons = returnLambdaCleaningWithRespectToLeadingLepton(0.4)
+            if channel == 'DL':
+                self.lambda_cleanVBFLeptons = returnLambdaCleaningWithRespectToLeadingLeptons(0.4)
         else:
             self.lambda_cleanVBFLeptons = lambda j : op.c_bool(True)
 
+        self.VBFJets = op.select(self.VBFJetsPreSel, self.lambda_cleanVBFLeptons)
+        self.lambda_VBFPair = lambda j1,j2 : op.AND(op.invariant_mass(j1.p4,j2.p4) > 500.,
+                                                    op.abs(j1.eta - j2.eta) > 3.)
+        
         if channel == "DL":
             self.lambda_cleanVBFAk4 = lambda j : op.AND(op.NOT(op.rng_any(self.ak4JetsByBtagScore[:2], lambda ak4Jet : op.deltaR(j.p4, ak4Jet.p4) <= 0.8 )))
             self.lambda_cleanVBFAk8 = lambda j : op.AND(op.NOT(op.rng_any(self.ak8Jets, lambda ak8Jet : op.deltaR(j.p4, ak8Jet.p4) <= 1.2 )))
-        #if channel == "SL":
-        #    raise NotImplementedError
 
-        self.VBFJets = op.select(self.VBFJetsPreSel, self.lambda_cleanVBFLeptons)
-        #self.VBFJetsResolved = op.select(self.VBFJets, self.lambda_cleanVBFAk4)
-        #self.VBFJetsBoosted  = op.select(self.VBFJets, self.lambda_cleanVBFAk8)
+            self.VBFJetsResolved = op.select(self.VBFJets, self.lambda_cleanVBFAk4)
+            self.VBFJetsBoosted  = op.select(self.VBFJets, self.lambda_cleanVBFAk8)
 
-        self.lambda_VBFPair = lambda j1,j2 : op.AND(op.invariant_mass(j1.p4,j2.p4) > 500.,
-                                                    op.abs(j1.eta - j2.eta) > 3.)
+            self.VBFJetPairsResolved = op.sort(op.combine(self.VBFJetsResolved, N=2, pred=self.lambda_VBFPair), lambda dijet : -op.invariant_mass(dijet[0].p4,dijet[1].p4))
+            self.VBFJetPairsBoosted  = op.sort(op.combine(self.VBFJetsBoosted,  N=2, pred=self.lambda_VBFPair), lambda dijet : -op.invariant_mass(dijet[0].p4,dijet[1].p4))
 
-        #self.VBFJetPairsResolved = op.sort(op.combine(self.VBFJetsResolved, N=2, pred=self.lambda_VBFPair), lambda dijet : -op.invariant_mass(dijet[0].p4,dijet[1].p4))
-        #self.VBFJetPairsBoosted  = op.sort(op.combine(self.VBFJetsBoosted,  N=2, pred=self.lambda_VBFPair), lambda dijet : -op.invariant_mass(dijet[0].p4,dijet[1].p4))
+        if channel == "SL":
+            #def cleanVBFwithJPA_Resolved(self, jpaJets, nJpaJets):
+            #    return lambda j : op.OR(*(op.deltaR(jpaJets[i].p4, j.p4) > 0.8 for i in range(nJpaJets)))
+            #def cleanVBFwithJPA_Boosted(self, jpaJets, nJpaJets):
+            #    return lambda j : op.AND(op.rng_len(self.ak8BJets) >= 1, op.OR(op.OR(*(op.deltaR(jpaJets[i].p4, j.p4) > 0.8 for i in range(nJpaJets))),
+            #                                                                   op.deltaR(self.ak8Jets[0].p4, j.p4) > 1.2))
+            print('VBF <<>> ak4/8-jets  cleaning is in Skimmer now!!!')
 
         #############################################################################
         #                             Scalefactors                                  #
