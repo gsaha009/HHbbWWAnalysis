@@ -891,7 +891,10 @@ class SkimmerNanoHHtobbWWSL(BaseNanoHHtobbWW,SkimmerModule):
                                                      op.static_cast("Float_t",op.c_float(0.))) if not self.args.Res0b else op.c_float(0.)
             
             varsToKeep['VBF_tag']        = op.c_int(op.rng_len(VBFJetPairsJPA) > 0) if not self.args.Res0b else op.c_float(0.) 
-
+            varsToKeep['zeppenfeldVar']  = op.switch(op.rng_len(VBFJetPairsJPA) > 0, 
+                                                     op.abs(lepton.eta - (VBFJetPairsJPA[0][0].eta + VBFJetPairsJPA[0][1].eta)/2.0)/op.abs(VBFJetPairsJPA[0][0].eta - VBFJetPairsJPA[0][1].eta),
+                                                     op.static_cast("Float_t",op.c_float(0.)))
+            
             if self.args.Res2b2Wj : 
                 varsToKeep['minJetDR']       = self.HLL.MinDiJetDRTight(jet1,jet2,jet3,jet4)
                 varsToKeep['minLepJetDR']    = self.HLL.MinDR_lep4j(lepton,jet1,jet2,jet3,jet4)
@@ -1102,7 +1105,10 @@ class SkimmerNanoHHtobbWWSL(BaseNanoHHtobbWW,SkimmerModule):
                                                      op.static_cast("Float_t",op.c_float(0.)))
             
             varsToKeep['VBF_tag']         = op.c_int(op.rng_len(VBFJetPairsJPA)>0)
-
+            varsToKeep['zeppenfeldVar']   = op.switch(op.rng_len(VBFJetPairsJPA) > 0, 
+                                                      op.abs(lepton.eta - (VBFJetPairsJPA[0][0].eta + VBFJetPairsJPA[0][1].eta)/2.0)/op.abs(VBFJetPairsJPA[0][0].eta - VBFJetPairsJPA[0][1].eta),
+                                                      op.static_cast("Float_t",op.c_float(0.)))
+            
 
             if self.args.Hbb2Wj:
                 varsToKeep['jetMinDR']    = self.HLL.MinDiJetDRTight(jet1,jet2,jet3,jet4)

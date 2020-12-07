@@ -71,6 +71,7 @@ def switch_on_index(indexes, condition, contA, contB):
     base = contA._base
     return [base[op.switch(condition, contA[index].idx, contB[index].idx)] for index in indexes]       
 '''
+
 #===============================================================================================#
 #                                       PlotterHHtobbWW                                         #
 #===============================================================================================#
@@ -92,6 +93,7 @@ class PlotterNanoHHtobbWWSL(BaseNanoHHtobbWW,DataDrivenBackgroundHistogramsModul
     def definePlots(self, t, noSel, sample=None, sampleCfg=None): 
         noSel = super(PlotterNanoHHtobbWWSL,self).prepareObjects(t, noSel, sample, sampleCfg, 'SL')
         # --------------------------- Machine Learning Model --------------------------- #
+        # -------- for JPA --------- #
         basepath = os.path.join(os.path.abspath(os.path.dirname(__file__)),'MachineLearning','ml-models','JPA')
         resolvedModelDict = dict()
         resolvedModelDict['2b2Wj'] = [os.path.join(basepath, 'bb1l_jpa_4jet_resolved_even.xml'), 
@@ -121,6 +123,27 @@ class PlotterNanoHHtobbWWSL(BaseNanoHHtobbWW,DataDrivenBackgroundHistogramsModul
         # keep the exact same order of nodes as mentioned in respective xml files
         ResolvedJPANodeList = ['2b2Wj','2b1Wj','1b2Wj','2b0Wj','1b1Wj','1b0Wj','0b']
         BoostedJPANodeList  = ['Hbb2Wj','Hbb1Wj']
+
+        '''
+        # ---------- LBN+DNN models ----------- #
+        basepathDNN = os.path.join(os.path.abspath(os.path.dirname(__file__)),'MachineLearning','ml-models','DNNSL')
+        resolvedDNNmodelList = []
+        boostedDNNmodelList = []
+        resolvedDNNmodelList.append(os.path.join(basepathDNN, 'model1.pb'))
+        resolvedDNNmodelList.append(os.path.join(basepathDNN, 'model2.pb'))
+        resolvedDNNmodelList.append(os.path.join(basepathDNN, 'model3.pb'))
+        resolvedDNNmodelList.append(os.path.join(basepathDNN, 'model4.pb'))
+        resolvedDNNmodelList.append(os.path.join(basepathDNN, 'model5.pb'))
+
+        boostedDNNmodelList.append(os.path.join(basepathDNN, 'model1.pb'))
+        boostedDNNmodelList.append(os.path.join(basepathDNN, 'model2.pb'))
+        boostedDNNmodelList.append(os.path.join(basepathDNN, 'model3.pb'))
+        boostedDNNmodelList.append(os.path.join(basepathDNN, 'model4.pb'))
+        boostedDNNmodelList.append(os.path.join(basepathDNN, 'model5.pb'))
+
+        model_input_names = ['in1','in2','in3','in4','in5']
+        model_input_names = 'Identity'
+        '''
 
         plots = []
         cutFlowPlots = []
@@ -153,6 +176,9 @@ class PlotterNanoHHtobbWWSL(BaseNanoHHtobbWW,DataDrivenBackgroundHistogramsModul
             
         #----- Singleleptons -----#
         ElSelObj,MuSelObj = makeSingleLeptonSelection(self,noSel,plot_yield=True)
+
+        ElSelObj.sel = self.beforeJetselection(ElSelObj.sel,'El')
+        MuSelObj.sel = self.beforeJetselection(MuSelObj.sel,'Mu')
         # selObjectDict : keys -> level (str)
         #                 values -> [El,Mu] x Selection object
         # Select the jets selections that will be done depending on user input #
