@@ -5,7 +5,7 @@ import subprocess
 import traceback
 
 from pynvml import *
-#import nvidia_smi
+import nvidia_smi
 from time import sleep
 from threading import Thread
 
@@ -36,16 +36,16 @@ class utilizationGPU(Thread):
         self.memAvgTot  = []
         self.memAvgStep = []
         self.running = True
-        
+
         try:
             nvmlInit()
             self.deviceCount = nvmlDeviceGetCount()
             # Get list of handles #
             logging.info("[GPU] Detected devices are :")
             for i in range(self.deviceCount):
-                #handle = nvidia_smi.nvmlDeviceGetHandleByIndex(i)
-                #self.GPUs.append(handle)
-                #logging.info("[GPU] ..... Device %d : %s"%(i, nvmlDeviceGetName(handle)))
+                handle = nvidia_smi.nvmlDeviceGetHandleByIndex(i)
+                self.GPUs.append(handle)
+                logging.info("[GPU] ..... Device %d : %s"%(i, nvmlDeviceGetName(handle)))
                 # Records #
                 self.occAvgTot.append(0)
                 self.occAvgStep.append(0)
@@ -55,7 +55,7 @@ class utilizationGPU(Thread):
         except Exception as e:
             logging.error("[GPU] *** Caught exception: %s : %s"%(str(e.__class__),str(e)))
             traceback.print_exc()
-        
+          
    # Override the run function of Thread class
     def run(self):
         import random
@@ -64,8 +64,8 @@ class utilizationGPU(Thread):
         print_counter = 0
         while(self.running):
             res = []
-            #for i in range(self.deviceCount):
-            #    res.append(nvidia_smi.nvmlDeviceGetUtilizationRates(self.GPUs[i]))
+            for i in range(self.deviceCount):
+                res.append(nvidia_smi.nvmlDeviceGetUtilizationRates(self.GPUs[i]))
 
             # Print every self.print_time #
             if print_counter == int(self.print_time/self.time_step):

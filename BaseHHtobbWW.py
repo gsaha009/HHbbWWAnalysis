@@ -1169,7 +1169,7 @@ One lepton and and one jet argument must be specified in addition to the require
         #############################################################################
         #                                AK8 Jets                                   #
         #############################################################################
-        #self.ak8JetsByPt = op.sort(t.FatJet, lambda jet : -jet.pt)
+        self.ak8JetsByPt = op.sort(t.FatJet, lambda jet : -jet.pt)
         self.ak8JetsByDeepB = op.sort(t.FatJet, lambda jet : -jet.btagDeepB)
         # Preselection #
         self.lambda_ak8JetsPreSel = lambda j : op.AND(j.jetId & 1 if era == "2016" else j.jetId & 2, # Jet ID flags bit1 is loose, bit2 is tight, bit3 is tightLepVeto
@@ -1180,7 +1180,8 @@ One lepton and and one jet argument must be specified in addition to the require
                                                              # Fatjet subjets must exist before checking Pt and eta 
                                                       op.AND(j.msoftdrop >= 30, j.msoftdrop <= 210),
                                                       j.tau2/j.tau1 <= 0.75)
-        self.ak8JetsPreSel = op.select(self.ak8JetsByDeepB, self.lambda_ak8JetsPreSel)
+        self.ak8JetsPreSel = op.select(self.ak8JetsByDeepB, self.lambda_ak8JetsPreSel) if channel == 'SL' else op.select(self.ak8JetsByPt, self.lambda_ak8JetsPreSel)
+
         # Cleaning #
         if self.args.POGID:
             self.lambda_cleanAk8Jets = lambda j : op.AND(op.NOT(op.rng_any(self.electronsTightSel, lambda ele : op.deltaR(j.p4, ele.p4) <= 0.8 )), 
@@ -1225,12 +1226,14 @@ One lepton and and one jet argument must be specified in addition to the require
         #                                VBF Jets                                   #
         #############################################################################
         self.lambda_VBFJets = lambda j : op.AND(j.jetId & 1 if era == "2016" else j.jetId & 2, # Jet ID flags bit1 is loose, bit2 is tight, bit3 is tightLepVeto
-                                                j.pt >= 25.,
+                                                j.pt >= 30.,
                                                 op.abs(j.eta) <= 4.7,
                                                 op.OR(j.pt >= 60.,
-                                                      op.AND(op.abs(j.eta) < 2.7, 
-                                                             op.abs(j.eta) > 3.0)))
-        self.VBFJetsPreSel = op.select(self.ak4JetsByPt, self.lambda_VBFJets)
+                                                      op.abs(j.eta) < 2.7, 
+                                                      op.abs(j.eta) > 3.0))
+        self.VBFJetsPreSelForPUID = op.select(self.ak4JetsByPt, lambda j : op.AND(j.pt<=50.,self.lambda_VBFJets(j)))
+        self.VBFJetsPreSel        = op.select(self.ak4JetsByPt, lambda j : op.AND(self.lambda_VBFJets(j),self.lambda_jetPUID(j)))
+
         if self.args.POGID:
             self.lambda_cleanVBFLeptons = lambda j : op.AND(op.NOT(op.rng_any(self.electronsTightSel, lambda ele : op.deltaR(j.p4, ele.p4) <= 0.4 )), 
                                                             op.NOT(op.rng_any(self.muonsTightSel, lambda mu : op.deltaR(j.p4, mu.p4) <= 0.4 )))
@@ -1242,17 +1245,27 @@ One lepton and and one jet argument must be specified in addition to the require
         else:
             self.lambda_cleanVBFLeptons = lambda j : op.c_bool(True)
 
-        self.VBFJets = op.select(self.VBFJetsPreSel, self.lambda_cleanVBFLeptons)
-        self.lambda_VBFPair = lambda j1,j2 : op.AND(op.invariant_mass(j1.p4,j2.p4) > 500.,
-                                                    op.abs(j1.eta - j2.eta) > 3.)
+        self.VBFJetsForPUID     = op.select(self.VBFJetsPreSelForPUID, self.lambda_cleanVBFLeptons)
+        self.VBFJets            = op.select(self.VBFJetsPreSel, self.lambda_cleanVBFLeptons)
+
+        self.lambda_VBFPair     = lambda j1,j2 : op.AND(op.invariant_mass(j1.p4,j2.p4) > 500.,
+                                                        op.abs(j1.eta - j2.eta) > 3.)
         
         if channel == "DL":
-            self.lambda_cleanVBFAk4 = lambda j : op.AND(op.NOT(op.rng_any(self.ak4JetsByBtagScore[:2], lambda ak4Jet : op.deltaR(j.p4, ak4Jet.p4) <= 0.8 )))
-            self.lambda_cleanVBFAk8 = lambda j : op.AND(op.NOT(op.rng_any(self.ak8Jets, lambda ak8Jet : op.deltaR(j.p4, ak8Jet.p4) <= 1.2 )))
+            self.lambda_cleanVBFAk4 = lambda j : op.multiSwitch((op.rng_len(self.ak4JetsByBtagScore)>1,op.AND(op.deltaR(j.p4, self.ak4JetsByBtagScore[0].p4)>0.8,
+                                                                                                              op.deltaR(j.p4, self.ak4JetsByBtagScore[1].p4)>0.8)),
+                                                                (op.rng_len(self.ak4JetsByBtagScore)==1,op.deltaR(j.p4, self.ak4JetsByBtagScore[0].p4)>0.8),
+                                                                op.c_bool(True))
+            #op.AND(op.NOT(op.rng_any(self.ak4JetsByBtagScore[:2], lambda ak4Jet : op.deltaR(j.p4, ak4Jet.p4) <= 0.8 )))
+            self.lambda_cleanVBFAk8 = lambda j : op.multiSwitch((op.rng_len(self.ak8BJets)>0,op.deltaR(j.p4, self.ak8BJets[0].p4) > 1.2),
+                                                                (op.rng_len(self.ak8Jets)>0,op.deltaR(j.p4, self.ak8Jets[0].p4) > 1.2),
+                                                                op.c_bool(True))
+
 
             self.VBFJetsResolved = op.select(self.VBFJets, self.lambda_cleanVBFAk4)
             self.VBFJetsBoosted  = op.select(self.VBFJets, self.lambda_cleanVBFAk8)
 
+            self.VBFJetPairs         = op.sort(op.combine(self.VBFJets, N=2, pred=self.lambda_VBFPair), lambda dijet : -op.invariant_mass(dijet[0].p4,dijet[1].p4))
             self.VBFJetPairsResolved = op.sort(op.combine(self.VBFJetsResolved, N=2, pred=self.lambda_VBFPair), lambda dijet : -op.invariant_mass(dijet[0].p4,dijet[1].p4))
             self.VBFJetPairsBoosted  = op.sort(op.combine(self.VBFJetsBoosted,  N=2, pred=self.lambda_VBFPair), lambda dijet : -op.invariant_mass(dijet[0].p4,dijet[1].p4))
 
