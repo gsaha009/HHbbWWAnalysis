@@ -186,7 +186,6 @@ def NeuralNetModel(x_train,y_train,x_val,y_val,params):
                         features    = ["E", "px", "py", "pz", "pt", "p", "m", "pair_cos"],
                         name='LBN')(INLBN)
     BATCHNORM = tf.keras.layers.BatchNormalization(name='BATCHNORM')(FEATURES)
-                # TODO : batch norm 
     # Concatenation of left and right #
     CONC = tf.keras.layers.Concatenate(axis=-1)([BATCHNORM, OH])
     L1 = Dense(params['first_neuron'],
@@ -246,10 +245,10 @@ def NeuralNetModel(x_train,y_train,x_val,y_val,params):
         
     model.compile(optimizer=Adam(lr=params['lr']),
                   loss={'OUT':params['loss_function']},
-                  metrics=['accuracy'])
+                  metrics=['accuracy','AUC'])
     print (model.summary())
     fit_inputs = {'IN':x_train}
-    fit_val = [{'IN':x_val},{'OUT':y_val},w_val]
+    fit_val = ({'IN':x_val},{'OUT':y_val},w_val)
     if params['n_particles'] > 0:
         fit_inputs['INLBN'] = x_train_lbn
         fit_val[0]['INLBN'] = x_val_lbn

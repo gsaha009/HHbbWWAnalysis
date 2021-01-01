@@ -285,11 +285,13 @@ def main():
                                                   lumi_dict                 = parameters.lumidict,
                                                   eras                      = era,
                                                   tree_name                 = parameters.tree_name,
-                                                  additional_columns        = {'tag':node,'era':era})
-                                                  #stop                      = 100000) # TODO : remove 
-                    data_node_era = data_node_era.sample(frac=1)[:500000] # TODO : remove 
+                                                  additional_columns        = {'tag':node,'era':era},
+                                                  stop                      = 30000) # TODO : remove 
+                    #data_node_era = data_node_era.sample(frac=1)[:100000] # TODO : remove 
                     if data_node is None:
-                        data_node = data_node_era
+                        data_node_era = data_node_era.sample(frac = 1) 
+                        data_node = data_node_era if data_node_era.shape[0] < 300000 else data_node_era[:300000]  
+                        #data_node = data_node_era
                     else:
                         data_node = pd.concat([data_node,data_node_era],axis=0)
                     era_str = '{:5s} class in era {}  : sample size = {:10d}'.format(node,era,data_node_era.shape[0])
@@ -410,7 +412,8 @@ def main():
                     n = train_all[selector].shape[0]
                     logging.info('     %10s on %10d [%3.2f%%] events'%(slicename,n,n*100/N)+' (With mask indices : ['+','.join([str(s) for s in slices])+'])')
         else:
-            logging.info("Sample size for the output  : %d"%test_all.shape[0])
+            #logging.info("Sample size for the output  : %d"%test_all.shape[0])
+            logging.info("TODO")
     else:
         logging.info("You asked for generator so no data input has been done")
         list_samples = [os.path.join(sampleConfig['sampleDir'],sample) for era in parameters.eras for samples in sampleConfig['sampleDict'][era].values() for sample in samples ]

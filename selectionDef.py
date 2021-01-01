@@ -106,11 +106,13 @@ def makeSingleLeptonSelection(self,baseSel,plot_yield=False,use_dd=True):
     ElSelObject = SelectionObject(sel          = baseSel,
                                   selName      = "Has1FakeableEl",
                                   yieldTitle   = "Fakeable lepton (channel $e^{\pm}$)",
-                                  yieldObj     = self.yields)
+                                  yieldObj     = self.yields,
+                                  record_yields = not self.args.onlypost)
     MuSelObject = SelectionObject(sel          = baseSel,
                                   selName      = "Has1FakeableMu",
                                   yieldTitle   = "Fakeable lepton (channel $\mu^{\pm}$)",
-                                  yieldObj     = self.yields)
+                                  yieldObj     = self.yields,
+                                  record_yields = not self.args.onlypost)
     ElSelObject.refine(cut = [op.rng_len(self.electronsFakeSel) >= 1,
                               op.OR(op.rng_len(self.muonsFakeSel) == 0,
                                     self.electron_conept[self.electronsFakeSel[0].idx] > self.muon_conept[self.muonsFakeSel[0].idx])])

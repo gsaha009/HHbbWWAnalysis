@@ -17,11 +17,11 @@ from grouped_entropy import GroupedXEnt
 ##################################  Path variables ####################################
 
 main_path = os.path.abspath(os.path.dirname(__file__))
-path_out = '/home/ucl/cp3/fbury/scratch/HHMachineLearning_output/'
+path_out = '/nfs/scratch/fynu/gsaha/HHMachineLearning_output/'
 path_model = os.path.join(main_path,'model')
 
 ##############################  Datasets proportion   #################################
-crossvalidation = True 
+crossvalidation = True
 
 # Classic training #
 # -> For crossvalidation == False
@@ -61,7 +61,7 @@ lumidict = {'2016':35922,'2017':41529.152060112,'2018':59740.565201546}
 eras = ['2016']
 #eras = ['2016','2017','2018'] # To enable or disable eras, add or remove from this list
 
-categories = ['resolved2b']
+categories = ['resolved2b','resolved1b']
 channels = ['El','Mu']
 
 # Better put them in alphabetical order
@@ -167,6 +167,7 @@ grouped_loss = GroupedXEnt(group_ids)
 #    'n_particles' : [16],
 #    'loss_function' : [grouped_loss] , #  [categorical_crossentropy]
 #}
+'''
 p = { 
     'lr' : [0.001], 
     'first_neuron' : [1024],
@@ -181,7 +182,21 @@ p = {
     'n_particles' : [10],
     'loss_function' : [grouped_loss] 
 }
-
+'''
+p = { 
+    'lr' : [0.001], 
+    'first_neuron' : [512],
+    'activation' : [relu],
+    'dropout' : [0.4],
+    'hidden_layers' : [4], # does not take into account the first layer
+    'output_activation' : [softmax],
+    'l2' : [0.01],
+    'optimizer' : [Adam],  
+    'epochs' : [300],   
+    'batch_size' : [50000], 
+    'n_particles' : [10],
+    'loss_function' : [grouped_loss] 
+}
 
 repetition = 1 # How many times each hyperparameter has to be used 
 

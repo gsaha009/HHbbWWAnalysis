@@ -342,7 +342,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Utility to generate Latex slides on the spot for the HH->bbWW analysis')
     parser.add_argument('-d','--dirnames', action='store', required=False, type=str, default='', nargs='+',
                         help='Path of the directory where the plots are (can be several separated by spaces')
-    parser.add_argument('-y','--yields', action='store', required=False, default=None,
+    parser.add_argument('-y','--yields', action='store', required=False, default=False,
                         help='Name of the yield table tex file')
     parser.add_argument('--pdf', action='store_true', required=False, default=False,
                         help='Wether to produce the PDF ')

@@ -823,39 +823,37 @@ class SkimmerNanoHHtobbWWSL(BaseNanoHHtobbWW,SkimmerModule):
             varsToKeep['bj1wj1_DPhi'] = op.abs(op.deltaPhi(jet1.p4,jet3.p4))   if hasbj1wj1 else op.static_cast("Float_t",op.c_float(0.))
 
             # L-562, L-635 [VBF]
-            varsToKeep['VBFj1pt']        = op.switch(op.rng_len(VBFJetPairsJPA) > 0, 
-                                                     op.switch(VBFJetPairsJPA[0][0].pt > VBFJetPairsJPA[0][1].pt,
-                                                               VBFJetPairsJPA[0][0].pt, VBFJetPairsJPA[0][1].pt),
-                                                     op.static_cast("Float_t",op.c_float(0.))) if not self.args.Res0b else op.c_float(0.)
-            varsToKeep['VBFj2pt']        = op.switch(op.rng_len(VBFJetPairsJPA) > 0, 
-                                                     op.switch(VBFJetPairsJPA[0][0].pt > VBFJetPairsJPA[0][1].pt,
-                                                               VBFJetPairsJPA[0][1].pt, VBFJetPairsJPA[0][0].pt),
-                                                     op.static_cast("Float_t",op.c_float(0.))) if not self.args.Res0b else op.c_float(0.)
-
-            varsToKeep['VBFj1eta']       = op.switch(op.rng_len(VBFJetPairsJPA) > 0, 
-                                                     op.switch(VBFJetPairsJPA[0][0].pt > VBFJetPairsJPA[0][1].pt,
-                                                               VBFJetPairsJPA[0][0].eta, VBFJetPairsJPA[0][1].eta),
-                                                     op.static_cast("Float_t",op.c_float(0.))) if not self.args.Res0b else op.c_float(0.)
-            varsToKeep['VBFj2eta']       = op.switch(op.rng_len(VBFJetPairsJPA) > 0, 
-                                                     op.switch(VBFJetPairsJPA[0][0].pt > VBFJetPairsJPA[0][1].pt,
-                                                               VBFJetPairsJPA[0][1].eta, VBFJetPairsJPA[0][0].eta),
-                                                     op.static_cast("Float_t",op.c_float(0.))) if not self.args.Res0b else op.c_float(0.)
-
-            varsToKeep['VBFj1j2dEta']    = op.switch(op.rng_len(VBFJetPairsJPA) > 0,op.abs(VBFJetPairsJPA[0][0].eta - VBFJetPairsJPA[0][1].eta),
-                                                     op.static_cast("Float_t",op.c_float(0.))) if not self.args.Res0b else op.c_float(0.)
-
-            varsToKeep['VBFj1j2dPhi']    = op.switch(op.rng_len(VBFJetPairsJPA) > 0,op.abs(op.deltaPhi(VBFJetPairsJPA[0][0].p4,VBFJetPairsJPA[0][1].p4)),
-                                                     op.static_cast("Float_t",op.c_float(0.))) if not self.args.Res0b else op.c_float(0.)
-
-            varsToKeep['VBFj1j2invM']    = op.switch(op.rng_len(VBFJetPairsJPA) > 0,op.invariant_mass(VBFJetPairsJPA[0][0].p4,  VBFJetPairsJPA[0][1].p4),
-                                                     op.static_cast("Float_t",op.c_float(0.))) if not self.args.Res0b else op.c_float(0.)
-            
-            varsToKeep['VBF_tag']        = op.c_int(op.rng_len(VBFJetPairsJPA) > 0) if not self.args.Res0b else op.c_float(0.) 
-            
-            varsToKeep['zeppenfeldVar']  = op.switch(op.rng_len(VBFJetPairsJPA) > 0, 
-                                                     op.abs(lepton.eta - (VBFJetPairsJPA[0][0].eta + VBFJetPairsJPA[0][1].eta)/2.0)/op.abs(VBFJetPairsJPA[0][0].eta - VBFJetPairsJPA[0][1].eta),
-                                                     op.static_cast("Float_t",op.c_float(0.)))
-            
+            if not self.args.Res0b: 
+                varsToKeep['VBFj1pt']        = op.switch(op.rng_len(VBFJetPairsJPA) > 0, 
+                                                         op.switch(VBFJetPairsJPA[0][0].pt > VBFJetPairsJPA[0][1].pt,
+                                                                   VBFJetPairsJPA[0][0].pt, VBFJetPairsJPA[0][1].pt),
+                                                         op.static_cast("Float_t",op.c_float(0.)))
+                varsToKeep['VBFj2pt']        = op.switch(op.rng_len(VBFJetPairsJPA) > 0, 
+                                                         op.switch(VBFJetPairsJPA[0][0].pt > VBFJetPairsJPA[0][1].pt,
+                                                                   VBFJetPairsJPA[0][1].pt, VBFJetPairsJPA[0][0].pt),
+                                                         op.static_cast("Float_t",op.c_float(0.)))
+                varsToKeep['VBFj1eta']       = op.switch(op.rng_len(VBFJetPairsJPA) > 0, 
+                                                         op.switch(VBFJetPairsJPA[0][0].pt > VBFJetPairsJPA[0][1].pt,
+                                                                   VBFJetPairsJPA[0][0].eta, VBFJetPairsJPA[0][1].eta),
+                                                         op.static_cast("Float_t",op.c_float(0.)))
+                varsToKeep['VBFj2eta']       = op.switch(op.rng_len(VBFJetPairsJPA) > 0, 
+                                                         op.switch(VBFJetPairsJPA[0][0].pt > VBFJetPairsJPA[0][1].pt,
+                                                                   VBFJetPairsJPA[0][1].eta, VBFJetPairsJPA[0][0].eta),
+                                                         op.static_cast("Float_t",op.c_float(0.)))
+                varsToKeep['VBFj1j2dEta']    = op.switch(op.rng_len(VBFJetPairsJPA) > 0,op.abs(VBFJetPairsJPA[0][0].eta - VBFJetPairsJPA[0][1].eta),
+                                                         op.static_cast("Float_t",op.c_float(0.)))
+                
+                varsToKeep['VBFj1j2dPhi']    = op.switch(op.rng_len(VBFJetPairsJPA) > 0,op.abs(op.deltaPhi(VBFJetPairsJPA[0][0].p4,VBFJetPairsJPA[0][1].p4)),
+                                                         op.static_cast("Float_t",op.c_float(0.)))
+                
+                varsToKeep['VBFj1j2invM']    = op.switch(op.rng_len(VBFJetPairsJPA) > 0,op.invariant_mass(VBFJetPairsJPA[0][0].p4,  VBFJetPairsJPA[0][1].p4),
+                                                         op.static_cast("Float_t",op.c_float(0.)))
+                
+                varsToKeep['VBF_tag']        = op.c_int(op.rng_len(VBFJetPairsJPA) > 0)
+                varsToKeep['zeppenfeldVar']  = op.switch(op.rng_len(VBFJetPairsJPA) > 0, 
+                                                         op.abs(lepton.eta - (VBFJetPairsJPA[0][0].eta + VBFJetPairsJPA[0][1].eta)/2.0)/op.abs(VBFJetPairsJPA[0][0].eta - VBFJetPairsJPA[0][1].eta),
+                                                         op.static_cast("Float_t",op.c_float(0.)))
+                
             if self.args.Res2b2Wj : 
                 varsToKeep['minJetDR']       = self.HLL.MinDiJetDRTight(jet1,jet2,jet3,jet4)
                 varsToKeep['minLepJetDR']    = self.HLL.MinDR_lep4j(lepton,jet1,jet2,jet3,jet4)
