@@ -792,13 +792,6 @@ def makeAk4JetsPlots (sel,j1,j2,j3,j4,channel,suffix,nJet,nbJet,HLL,is_MC=False)
                                  title="DeltaR of the dijet_[%s_%s] (channel %s)"%(j1_name,j4_name,channel),
                                  xTitle= "DeltaR [%s_%s]"%(j1_name, j4_name),
                                  plotopts = channelLabel))
-        plots.append(Plot.make1D("%s_%s_DeltaR_%s_%s"%(channel,suffix,j3_name,j4_name), 
-                                 op.deltaR(j3.p4,j4.p4), 
-                                 sel, 
-                                 EquidistantBinning(20,0, 3.2),
-                                 title="DeltaR of the dijet_[%s_%s] (channel %s)"%(j3_name,j4_name,channel),
-                                 xTitle= "DeltaR [%s_%s]"%(j3_name, j4_name),
-                                 plotopts = channelLabel))        
         plots.append(Plot.make1D("%s_%s_DeltaR_%s_%s"%(channel,suffix,'Hbb','Wjj'), 
                                  op.deltaR((j1.p4+j2.p4),(j3.p4+j4.p4)), 
                                  sel, 

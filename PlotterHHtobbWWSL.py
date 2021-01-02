@@ -187,9 +187,6 @@ class PlotterNanoHHtobbWWSL(BaseNanoHHtobbWW,DataDrivenBackgroundHistogramsModul
             ElSelObjResolved = makeResolvedSelection(self,ElSelObj,copy_sel=True,plot_yield=True)
             MuSelObjResolved = makeResolvedSelection(self,MuSelObj,copy_sel=True,plot_yield=True)
         
-            #yields.add(ElSelObjResolved.sel,title=ElSelObjResolved.yieldTitle)
-            #yields.add(MuSelObjResolved.sel,title=MuSelObjResolved.yieldTitle)
-
             if self.args.onlypost:
                 ElSelObjResolved.record_yields = True
                 MuSelObjResolved.record_yields = True
@@ -213,11 +210,11 @@ class PlotterNanoHHtobbWWSL(BaseNanoHHtobbWW,DataDrivenBackgroundHistogramsModul
                 plots.append(objectsNumberPlot(**{k:channelDict[k] for k in commonItems},**JetsN))
                 plots.append(objectsNumberPlot(**{k:channelDict[k] for k in commonItems},**FatJetsN))
                 # Ak4 Jets #
-                #plots.extend(makeAk4JetsPlots(**{k:channelDict[k] for k in JetKeys},HLL=self.HLL))
+                plots.extend(makeAk4JetsPlots(**{k:channelDict[k] for k in JetKeys},HLL=self.HLL))
                 # MET #
                 plots.extend(makeMETPlots(**{k:channelDict[k] for k in commonItems}, met=self.corrMET))
                 # High level #
-                #plots.extend(makeHighLevelPlotsResolved(**{k:channelDict[k] for k in ResolvedKeys},HLL=self.HLL))
+                plots.extend(makeHighLevelPlotsResolved(**{k:channelDict[k] for k in ResolvedKeys},HLL=self.HLL))
 
                 
         ##### Ak8-b jets selection #####
@@ -231,9 +228,6 @@ class PlotterNanoHHtobbWWSL(BaseNanoHHtobbWW,DataDrivenBackgroundHistogramsModul
             ElSelObjBoosted = makeBoostedSelection(self,ElSelObj,copy_sel=True,plot_yield=True)
             MuSelObjBoosted = makeBoostedSelection(self,MuSelObj,copy_sel=True,plot_yield=True)
             
-            #yields.add(ElSelObjBoosted.sel,title=ElSelObjBoosted.yieldTitle)
-            #yields.add(MuSelObjBoosted.sel,title=MuSelObjBoosted.yieldTitle)
-
             if self.args.onlypost:
                 ElSelObjBoosted.record_yields = True
                 MuSelObjBoosted.record_yields = True
@@ -258,11 +252,11 @@ class PlotterNanoHHtobbWWSL(BaseNanoHHtobbWW,DataDrivenBackgroundHistogramsModul
                 plots.append(objectsNumberPlot(**{k:channelDict[k] for k in commonItems},**FatJetsN))
                 plots.append(objectsNumberPlot(**{k:channelDict[k] for k in commonItems},**SlimJetsN))
                 # Ak8 Jets #
-                #plots.extend(makeSingleLeptonAk8JetsPlots(**{k:channelDict[k] for k in FatJetKeys},nMedBJets=self.nMediumBTaggedSubJets, HLL=self.HLL))
+                plots.extend(makeSingleLeptonAk8JetsPlots(**{k:channelDict[k] for k in FatJetKeys},nMedBJets=self.nMediumBTaggedSubJets, HLL=self.HLL))
                 # MET #
                 plots.extend(makeMETPlots(**{k:channelDict[k] for k in commonItems}, met=self.corrMET))
                 # HighLevel #
-                #plots.extend(makeHighLevelPlotsBoosted(**{k:channelDict[k] for k in BoostedKeys}, HLL=self.HLL))
+                plots.extend(makeHighLevelPlotsBoosted(**{k:channelDict[k] for k in BoostedKeys}, HLL=self.HLL))
                 
 
         print('jetSel_Level: {}'.format(jetsel_level))
